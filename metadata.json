@@ -1,0 +1,7 @@
+{
+  "name": "HỒN ĐẤT VIỆT - Khám phá Di sản & Văn hóa Việt Nam",
+  "description": "HỒN ĐẤT VIỆT giúp khám phá di tích, cổ phục, làng nghề, ẩm thực và văn hóa Việt Nam với AI, bản đồ di sản và gợi ý hành trình.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
