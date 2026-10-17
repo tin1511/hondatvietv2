@@ -104,6 +104,14 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'community', label: languageService.t('nav.community', language, 'Cộng đồng'), icon: Users },
   ];
 
+  // Keep mobile navigation inclusive of the modules already exposed by the bottom-sheet menu.
+  const mobileNavItems = [
+    ...navItems,
+    { id: 'food', label: languageService.t('tools.food', language, 'Ăn Uống & Vui Chơi'), icon: Utensils },
+    { id: 'crafts', label: languageService.t('tools.crafts', language, 'Làng Nghề Cổ'), icon: BookOpen },
+    { id: 'admin', label: languageService.t('nav.admin', language, 'Quản trị viên'), icon: ShieldCheck },
+  ];
+
   return (
     <header ref={headerRef} className="sticky top-0 z-40 bg-stone-950/90 backdrop-blur-md border-b border-amber-900/30 text-stone-100 shadow-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -339,7 +347,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           aria-label="Tất cả mục điều hướng"
         >
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {navItems.map((item) => {
+            {mobileNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentTab === item.id;
               return (
