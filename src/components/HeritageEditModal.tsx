@@ -13,15 +13,18 @@ import {
   AlertCircle,
   Plus,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  Globe
 } from 'lucide-react';
 import { HeritageItem, HeritageCategory, Region, VerificationStatus } from '../types';
 import { storageService } from '../services/storageService';
+import { languageService, SUPPORTED_LANGUAGES } from '../services/languageService';
 
 interface HeritageEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   heritage: HeritageItem | null;
+  language?: string;
   onSaveSuccess?: (savedItem: HeritageItem) => void;
 }
 
@@ -42,11 +45,19 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
   isOpen,
   onClose,
   heritage,
+  language,
   onSaveSuccess
 }) => {
   const isNew = !heritage || !heritage.id;
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
   const formRef = useRef<HTMLFormElement>(null);
+  const [editLang, setEditLang] = useState<string>(() => language || languageService.getCurrentLanguage() || 'vi');
+
+  useEffect(() => {
+    if (language) {
+      setEditLang(language);
+    }
+  }, [language, isOpen]);
 
   // Body scroll lock to prevent background scroll on mobile
   useEffect(() => {
@@ -91,7 +102,8 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
     interestingFacts: [''],
     verifiedStatus: 'verified',
     tags: ['Di sản', 'Lịch sử'],
-    suggestedQuestions: []
+    suggestedQuestions: [],
+    translations: {}
   });
 
   const [factInput, setFactInput] = useState('');
@@ -105,7 +117,8 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
         interestingFacts: heritage.interestingFacts && heritage.interestingFacts.length > 0
           ? [...heritage.interestingFacts]
           : [''],
-        tags: heritage.tags ? [...heritage.tags] : ['Di sản']
+        tags: heritage.tags ? [...heritage.tags] : ['Di sản'],
+        translations: heritage.translations ? { ...heritage.translations } : {}
       });
     } else {
       setFormData({
@@ -132,7 +145,8 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
         interestingFacts: ['Công trình được UNESCO vinh danh'],
         verifiedStatus: 'verified',
         tags: ['Di sản'],
-        suggestedQuestions: []
+        suggestedQuestions: [],
+        translations: {}
       });
     }
     setActiveStep(1);
@@ -151,6 +165,68 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const getLangValue = (field: 'name' | 'categoryLabel' | 'period' | 'dynasty' | 'history' | 'culturalSignificance' | 'overview' | 'address' | 'visitingHours' | 'ticketPrice'): string => {
+    if (editLang === 'vi') {
+      return (formData[field] as string) || '';
+    }
+    const val = formData.translations?.[editLang]?.[field];
+    if (val !== undefined && val !== null && val !== '') return val;
+    if (editLang === 'en' && field === 'name' && formData.englishName) return formData.englishName;
+    return '';
+  };
+
+  const getLangFacts = (): string[] => {
+    if (editLang === 'vi') {
+      return formData.interestingFacts || [];
+    }
+    return formData.translations?.[editLang]?.interestingFacts || [];
+  };
+
+  const handleLangFieldChange = (field: string, val: any) => {
+    if (editLang === 'vi') {
+      setFormData(prev => ({ ...prev, [field]: val }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        translations: {
+          ...(prev.translations || {}),
+          [editLang]: {
+            ...(prev.translations?.[editLang] || {}),
+            [field]: val
+          }
+        },
+        ...(editLang === 'en' && field === 'name' ? { englishName: val } : {})
+      }));
+    }
+  };
+
+  const handleAutoTranslateToEditLang = () => {
+    if (editLang === 'vi') return;
+    const translatedItem = languageService.translateHeritageItem(formData as HeritageItem, editLang);
+    setFormData(prev => ({
+      ...prev,
+      translations: {
+        ...(prev.translations || {}),
+        [editLang]: {
+          name: translatedItem.name || prev.englishName || prev.name,
+          categoryLabel: translatedItem.categoryLabel || prev.categoryLabel,
+          period: translatedItem.period || prev.period,
+          dynasty: translatedItem.dynasty || prev.dynasty,
+          history: translatedItem.history || prev.history,
+          culturalSignificance: translatedItem.culturalSignificance || prev.culturalSignificance,
+          overview: translatedItem.overview || prev.overview,
+          visitingHours: translatedItem.visitingHours || prev.visitingHours,
+          ticketPrice: translatedItem.ticketPrice || prev.ticketPrice,
+          interestingFacts: translatedItem.interestingFacts || prev.interestingFacts
+        }
+      },
+      ...(editLang === 'en' ? { englishName: translatedItem.name || prev.name } : {})
+    }));
+    const targetLangName = SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name || editLang;
+    setSuccessMessage(`Đã tự động điền gợi ý bản dịch sang ${targetLangName}!`);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = CATEGORY_OPTIONS.find(c => c.id === e.target.value);
     setFormData(prev => ({
@@ -162,18 +238,47 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
 
   const handleAddFact = () => {
     if (!factInput.trim()) return;
-    setFormData(prev => ({
-      ...prev,
-      interestingFacts: [...(prev.interestingFacts || []), factInput.trim()]
-    }));
+    const text = factInput.trim();
+    if (editLang === 'vi') {
+      setFormData(prev => ({
+        ...prev,
+        interestingFacts: [...(prev.interestingFacts || []), text]
+      }));
+    } else {
+      const currentList = formData.translations?.[editLang]?.interestingFacts || [];
+      setFormData(prev => ({
+        ...prev,
+        translations: {
+          ...(prev.translations || {}),
+          [editLang]: {
+            ...(prev.translations?.[editLang] || {}),
+            interestingFacts: [...currentList, text]
+          }
+        }
+      }));
+    }
     setFactInput('');
   };
 
   const handleRemoveFact = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      interestingFacts: (prev.interestingFacts || []).filter((_, i) => i !== index)
-    }));
+    if (editLang === 'vi') {
+      setFormData(prev => ({
+        ...prev,
+        interestingFacts: (prev.interestingFacts || []).filter((_, i) => i !== index)
+      }));
+    } else {
+      const currentList = formData.translations?.[editLang]?.interestingFacts || [];
+      setFormData(prev => ({
+        ...prev,
+        translations: {
+          ...(prev.translations || {}),
+          [editLang]: {
+            ...(prev.translations?.[editLang] || {}),
+            interestingFacts: currentList.filter((_, i) => i !== index)
+          }
+        }
+      }));
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -201,24 +306,24 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
 
     const itemToSave: HeritageItem = {
       id: formData.id || 'heritage-' + Date.now(),
-      name: formData.name.trim(),
-      vietnameseName: formData.vietnameseName?.trim() || formData.name.trim(),
-      englishName: formData.englishName?.trim() || '',
+      name: formData.name?.trim() || '',
+      vietnameseName: formData.vietnameseName?.trim() || formData.name?.trim() || '',
+      englishName: formData.englishName?.trim() || formData.translations?.en?.name || '',
       category: formData.category || 'monument',
       categoryLabel: formData.categoryLabel?.trim() || 'Di sản Văn hóa',
       region: (formData.region as Region) || 'central',
-      province: formData.province.trim(),
+      province: formData.province?.trim() || '',
       period: formData.period?.trim() || 'Lịch sử Việt Nam',
       dynasty: formData.dynasty?.trim() || '',
-      address: formData.address?.trim() || formData.province.trim(),
+      address: formData.address?.trim() || formData.province?.trim() || '',
       lat: Number(formData.lat) || 16.0,
       lng: Number(formData.lng) || 108.0,
       imageUrl: formData.imageUrl?.trim() || 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=800&q=80',
       visitingHours: formData.visitingHours?.trim() || '08:00 - 17:00',
       ticketPrice: formData.ticketPrice?.trim() || 'Miễn phí',
-      googleMapsUri: formData.googleMapsUri?.trim() || `https://maps.google.com/?q=${encodeURIComponent(formData.name.trim())}`,
-      history: formData.history.trim(),
-      overview: formData.overview?.trim() || formData.history.trim().slice(0, 180) + '...',
+      googleMapsUri: formData.googleMapsUri?.trim() || `https://maps.google.com/?q=${encodeURIComponent(formData.name?.trim() || '')}`,
+      history: formData.history?.trim() || '',
+      overview: formData.overview?.trim() || (formData.history?.trim().slice(0, 180) + '...'),
       culturalSignificance: formData.culturalSignificance?.trim() || 'Bảo tồn giá trị văn hóa và lịch sử ngàn năm của dân tộc.',
       interestingFacts: (formData.interestingFacts || []).filter(f => f.trim().length > 0),
       verifiedStatus: (formData.verifiedStatus as VerificationStatus) || 'verified',
@@ -227,7 +332,8 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
       suggestedQuestions: formData.suggestedQuestions || [
         `Ý nghĩa lịch sử của ${formData.name} là gì?`,
         `Thời điểm nào tham quan ${formData.name} đẹp nhất?`
-      ]
+      ],
+      translations: formData.translations
     };
 
     await storageService.updateHeritage(itemToSave);
@@ -269,7 +375,7 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
                 {isNew ? 'Thêm Điểm Di Sản Mới' : 'Chỉnh Sửa Thông Tin Di Sản'}
               </h3>
               <p className="text-[10px] sm:text-[11px] text-stone-400 truncate">
-                Thông tin sẽ qua kiểm duyệt Admin trước khi đăng tải
+                {languageService.t('Hỗ trợ biên tập đa ngôn ngữ (Việt, Anh, Pháp, Nhật, Hàn, Trung)', editLang, 'Hỗ trợ biên tập đa ngôn ngữ')}
               </p>
             </div>
           </div>
@@ -281,6 +387,47 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
           >
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Global Multi-Language Selector Bar */}
+        <div className="px-3 sm:px-5 py-2 bg-stone-950 border-b border-stone-800/80 flex flex-wrap items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2 text-xs text-stone-300 font-medium">
+            <Globe className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="text-[11px] sm:text-xs text-stone-300">{languageService.t('Ngôn ngữ biên tập:', editLang, 'Ngôn ngữ:')}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {SUPPORTED_LANGUAGES.map(lang => (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => setEditLang(lang.code)}
+                className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                  editLang === lang.code
+                    ? 'bg-amber-500 text-stone-950 shadow font-bold'
+                    : 'bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700/60'
+                }`}
+              >
+                <span>{lang.flag}</span>
+                <span>{lang.name}</span>
+                {editLang === lang.code && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-stone-950" />
+                )}
+              </button>
+            ))}
+
+            {editLang !== 'vi' && (
+              <button
+                type="button"
+                onClick={handleAutoTranslateToEditLang}
+                className="ml-auto px-2 py-0.5 sm:py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] sm:text-[11px] font-medium flex items-center gap-1 transition-all cursor-pointer"
+                title="Tự động điền bản dịch từ tiếng Việt bằng AI/Từ điển"
+              >
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                <span>Tự động dịch sang {SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name}</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Step Indicator Bar - Responsive for Mobile */}
@@ -377,13 +524,27 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
               <div className="space-y-3.5 animate-fadeIn">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="font-semibold text-stone-300 text-xs">Tên Di sản (*)</label>
+                    <div className="flex items-center justify-between">
+                      <label className="font-semibold text-stone-300 text-xs">
+                        Tên Di sản (*)
+                        {editLang !== 'vi' && (
+                          <span className="ml-1 text-[10px] text-amber-400 font-normal">
+                            ({SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name})
+                          </span>
+                        )}
+                      </label>
+                      {editLang !== 'vi' && formData.name && (
+                        <span className="text-[10px] text-stone-400 truncate max-w-[140px]" title={formData.name}>
+                          Gốc: {formData.name}
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="text"
-                      value={formData.name || ''}
-                      onChange={(e) => handleChange('name', e.target.value)}
-                      placeholder="VD: Đô thị Cổ Hội An (Phố Cổ Hội An)"
-                      required
+                      value={getLangValue('name')}
+                      onChange={(e) => handleLangFieldChange('name', e.target.value)}
+                      placeholder={editLang === 'vi' ? "VD: Đô thị Cổ Hội An (Phố Cổ Hội An)" : (formData.name || "Tên di sản theo ngôn ngữ được chọn")}
+                      required={editLang === 'vi'}
                       className="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2.5 sm:py-2 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 font-medium text-xs sm:text-xs"
                     />
                   </div>
@@ -437,12 +598,19 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-semibold text-stone-300 text-xs">Nhãn hiển thị thẻ</label>
+                    <label className="font-semibold text-stone-300 text-xs">
+                      Nhãn hiển thị thẻ
+                      {editLang !== 'vi' && (
+                        <span className="ml-1 text-[10px] text-amber-400 font-normal">
+                          ({SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name})
+                        </span>
+                      )}
+                    </label>
                     <input
                       type="text"
-                      value={formData.categoryLabel || ''}
-                      onChange={(e) => handleChange('categoryLabel', e.target.value)}
-                      placeholder="VD: Di sản Đô thị Cổ"
+                      value={getLangValue('categoryLabel')}
+                      onChange={(e) => handleLangFieldChange('categoryLabel', e.target.value)}
+                      placeholder={editLang === 'vi' ? "VD: Di sản Đô thị Cổ" : (formData.categoryLabel || "Category Label")}
                       className="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2.5 sm:py-2 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 text-xs sm:text-xs"
                     />
                   </div>
@@ -468,34 +636,55 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
               <div className="space-y-3.5 animate-fadeIn">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1">
-                    <label className="font-semibold text-stone-300 text-xs">Niên đại / Thời kỳ</label>
+                    <label className="font-semibold text-stone-300 text-xs">
+                      Niên đại / Thời kỳ
+                      {editLang !== 'vi' && (
+                        <span className="ml-1 text-[10px] text-amber-400 font-normal">
+                          ({SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name})
+                        </span>
+                      )}
+                    </label>
                     <input
                       type="text"
-                      value={formData.period || ''}
-                      onChange={(e) => handleChange('period', e.target.value)}
-                      placeholder="VD: Thế kỷ XVI - XIX"
+                      value={getLangValue('period')}
+                      onChange={(e) => handleLangFieldChange('period', e.target.value)}
+                      placeholder={editLang === 'vi' ? "VD: Thế kỷ XVI - XIX" : (formData.period || "Period / Era")}
                       className="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2.5 sm:py-2 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 text-xs sm:text-xs"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-semibold text-stone-300 text-xs">Triều đại liên quan</label>
+                    <label className="font-semibold text-stone-300 text-xs">
+                      Triều đại liên quan
+                      {editLang !== 'vi' && (
+                        <span className="ml-1 text-[10px] text-amber-400 font-normal">
+                          ({SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name})
+                        </span>
+                      )}
+                    </label>
                     <input
                       type="text"
-                      value={formData.dynasty || ''}
-                      onChange={(e) => handleChange('dynasty', e.target.value)}
-                      placeholder="VD: Triều Nguyễn / Chúa Nguyễn"
+                      value={getLangValue('dynasty')}
+                      onChange={(e) => handleLangFieldChange('dynasty', e.target.value)}
+                      placeholder={editLang === 'vi' ? "VD: Triều Nguyễn / Chúa Nguyễn" : (formData.dynasty || "Dynasty")}
                       className="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2.5 sm:py-2 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 text-xs sm:text-xs"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-semibold text-stone-300 text-xs">Địa chỉ cụ thể</label>
+                    <label className="font-semibold text-stone-300 text-xs">
+                      Địa chỉ cụ thể
+                      {editLang !== 'vi' && (
+                        <span className="ml-1 text-[10px] text-amber-400 font-normal">
+                          ({SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name})
+                        </span>
+                      )}
+                    </label>
                     <input
                       type="text"
-                      value={formData.address || ''}
-                      onChange={(e) => handleChange('address', e.target.value)}
-                      placeholder="VD: Phường Minh An, TP. Hội An"
+                      value={getLangValue('address')}
+                      onChange={(e) => handleLangFieldChange('address', e.target.value)}
+                      placeholder={editLang === 'vi' ? "VD: Phường Minh An, TP. Hội An" : (formData.address || "Address")}
                       className="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2.5 sm:py-2 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 text-xs sm:text-xs"
                     />
                   </div>
@@ -534,13 +723,20 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
                   <div className="space-y-1">
                     <label className="font-semibold text-stone-300 flex items-center gap-1.5 text-xs">
                       <Clock className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Giờ tham quan</span>
+                      <span>
+                        Giờ tham quan
+                        {editLang !== 'vi' && (
+                          <span className="ml-1 text-[10px] text-amber-400 font-normal">
+                            ({SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name})
+                          </span>
+                        )}
+                      </span>
                     </label>
                     <input
                       type="text"
-                      value={formData.visitingHours || ''}
-                      onChange={(e) => handleChange('visitingHours', e.target.value)}
-                      placeholder="VD: 07:30 - 17:30 hàng ngày"
+                      value={getLangValue('visitingHours')}
+                      onChange={(e) => handleLangFieldChange('visitingHours', e.target.value)}
+                      placeholder={editLang === 'vi' ? "VD: 07:30 - 17:30 hàng ngày" : (formData.visitingHours || "Visiting Hours")}
                       className="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2.5 sm:py-2 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 text-xs sm:text-xs"
                     />
                   </div>
@@ -548,13 +744,20 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
                   <div className="space-y-1">
                     <label className="font-semibold text-stone-300 flex items-center gap-1.5 text-xs">
                       <Ticket className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Giá vé tham quan</span>
+                      <span>
+                        Giá vé tham quan
+                        {editLang !== 'vi' && (
+                          <span className="ml-1 text-[10px] text-amber-400 font-normal">
+                            ({SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name})
+                          </span>
+                        )}
+                      </span>
                     </label>
                     <input
                       type="text"
-                      value={formData.ticketPrice || ''}
-                      onChange={(e) => handleChange('ticketPrice', e.target.value)}
-                      placeholder="VD: 120.000 VNĐ / vé"
+                      value={getLangValue('ticketPrice')}
+                      onChange={(e) => handleLangFieldChange('ticketPrice', e.target.value)}
+                      placeholder={editLang === 'vi' ? "VD: 120.000 VNĐ / vé" : (formData.ticketPrice || "Ticket Price")}
                       className="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2.5 sm:py-2 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 text-xs sm:text-xs"
                     />
                   </div>
@@ -566,24 +769,51 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
             {activeStep === 3 && (
               <div className="space-y-3.5 animate-fadeIn">
                 <div className="space-y-1">
-                  <label className="font-semibold text-stone-300 text-xs">Mô tả Lịch sử & Câu chuyện Di sản (*)</label>
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-stone-300 text-xs">
+                      Mô tả Lịch sử & Câu chuyện Di sản (*)
+                      {editLang !== 'vi' && (
+                        <span className="ml-1 text-[10px] text-amber-400 font-normal">
+                          ({SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name})
+                        </span>
+                      )}
+                    </label>
+                    {editLang !== 'vi' && formData.history && (
+                      <span className="text-[10px] text-amber-400/80 font-mono">
+                        Bản dịch ngôn ngữ {editLang.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
                   <textarea
                     rows={3}
-                    value={formData.history || ''}
-                    onChange={(e) => handleChange('history', e.target.value)}
-                    placeholder="Nhập nội dung lịch sử hình thành, giá trị kiến trúc..."
-                    required
+                    value={getLangValue('history')}
+                    onChange={(e) => handleLangFieldChange('history', e.target.value)}
+                    placeholder={editLang === 'vi' ? "Nhập nội dung lịch sử hình thành, giá trị kiến trúc..." : (formData.history || "History & architectural narrative in " + editLang)}
+                    required={editLang === 'vi'}
                     className="w-full bg-stone-950 border border-stone-800 rounded-xl p-2.5 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 font-serif leading-relaxed text-xs sm:text-xs"
                   />
+                  {editLang !== 'vi' && formData.history && (
+                    <div className="p-2 rounded-lg bg-stone-950 border border-stone-800/80 text-[10px] text-stone-400 font-serif leading-relaxed line-clamp-2">
+                      <span className="text-amber-400 font-sans font-bold mr-1">Bản gốc tiếng Việt:</span>
+                      {formData.history}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-stone-300 text-xs">Ý nghĩa Văn hóa & Tầm vóc Di sản</label>
+                  <label className="font-semibold text-stone-300 text-xs">
+                    Ý nghĩa Văn hóa & Tầm vóc Di sản
+                    {editLang !== 'vi' && (
+                      <span className="ml-1 text-[10px] text-amber-400 font-normal">
+                        ({SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name})
+                      </span>
+                    )}
+                  </label>
                   <textarea
                     rows={2}
-                    value={formData.culturalSignificance || ''}
-                    onChange={(e) => handleChange('culturalSignificance', e.target.value)}
-                    placeholder="VD: Được UNESCO công nhận Di sản Văn hóa Thế giới năm 1999..."
+                    value={getLangValue('culturalSignificance')}
+                    onChange={(e) => handleLangFieldChange('culturalSignificance', e.target.value)}
+                    placeholder={editLang === 'vi' ? "VD: Được UNESCO công nhận Di sản Văn hóa Thế giới năm 1999..." : (formData.culturalSignificance || "Cultural Significance")}
                     className="w-full bg-stone-950 border border-stone-800 rounded-xl p-2 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 font-serif text-xs sm:text-xs"
                   />
                 </div>
@@ -591,7 +821,14 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
                 <div className="space-y-1">
                   <label className="font-semibold text-stone-300 flex items-center gap-1.5 text-xs">
                     <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Điểm nổi bật / Sự thật thú vị</span>
+                    <span>
+                      Điểm nổi bật / Sự thật thú vị
+                      {editLang !== 'vi' && (
+                        <span className="ml-1 text-[10px] text-amber-400 font-normal">
+                          ({SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name})
+                        </span>
+                      )}
+                    </span>
                   </label>
                   <div className="flex gap-2">
                     <input
@@ -604,23 +841,23 @@ export const HeritageEditModal: React.FC<HeritageEditModalProps> = ({
                           handleAddFact();
                         }
                       }}
-                      placeholder="Thêm điểm nổi bật mới..."
+                      placeholder={`Thêm điểm nổi bật mới (${SUPPORTED_LANGUAGES.find(l => l.code === editLang)?.name || editLang})...`}
                       className="flex-1 bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 sm:py-1.5 text-stone-300 text-xs focus:outline-none focus:border-amber-500"
                     />
                     <button
                       type="button"
                       onClick={handleAddFact}
-                      className="px-3.5 py-2 sm:py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs flex items-center gap-1 font-medium transition-colors"
+                      className="px-3.5 py-2 sm:py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs flex items-center gap-1 font-medium transition-colors cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Thêm</span>
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-1.5 pt-1">
-                    {(formData.interestingFacts || []).map((fact, idx) => (
+                    {getLangFacts().map((fact, idx) => (
                       <span key={idx} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-200 text-[11px]">
                         <span>• {fact}</span>
-                        <button type="button" onClick={() => handleRemoveFact(idx)} className="text-stone-400 hover:text-red-400 ml-1">×</button>
+                        <button type="button" onClick={() => handleRemoveFact(idx)} className="text-stone-400 hover:text-red-400 ml-1 cursor-pointer">×</button>
                       </span>
                     ))}
                   </div>

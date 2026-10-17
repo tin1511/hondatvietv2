@@ -56,6 +56,19 @@ export interface HeritageItem {
   tags: string[];
   suggestedQuestions: string[];
   overview?: string;
+  translations?: Record<string, {
+    name?: string;
+    categoryLabel?: string;
+    period?: string;
+    dynasty?: string;
+    history?: string;
+    culturalSignificance?: string;
+    overview?: string;
+    address?: string;
+    visitingHours?: string;
+    ticketPrice?: string;
+    interestingFacts?: string[];
+  }>;
 }
 
 export type StoryMode = 'children' | 'student' | 'university' | 'adult' | 'foreigner';
@@ -437,6 +450,12 @@ export interface RecognitionSampleItem {
   prompt: string;
   description?: string;
   source?: string;
+  translations?: Record<string, {
+    title?: string;
+    category?: string;
+    prompt?: string;
+    description?: string;
+  }>;
 }
 
 export interface RecognitionSectionConfig {
@@ -447,4 +466,10 @@ export interface RecognitionSectionConfig {
   samples: RecognitionSampleItem[];
   lastUpdated?: string;
   updatedBy?: string;
+  translations?: Record<string, {
+    badge?: string;
+    title?: string;
+    description?: string;
+    samplesLabel?: string;
+  }>;
 }

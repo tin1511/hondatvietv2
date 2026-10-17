@@ -1473,279 +1473,6 @@ export const PHRASE_TRANSLATIONS: Record<string, Record<string, string>> = {
     ko: '베트남의 문화유산과 역사, 생생한 여행 경험을 발견하고 보존하며 널리 알리는 AI 플랫폼입니다.',
     zh: '致力于探索、保护与传承越南璀璨历史遗产与真实旅游体验的人工智能综合平台。'
   },
-  'Ống Kính AI Di Sản': {
-    en: 'Heritage AI Vision Lens',
-    fr: 'Objectif Vision IA',
-    ja: 'AI遺産ビジョンレンズ',
-    ko: '헤리티지 AI 비전 렌즈',
-    zh: '文化遗产 AI 视觉镜'
-  },
-  'Chụp ảnh trực tiếp từ thiết bị': {
-    en: 'Capture photo directly from device',
-    fr: 'Capturer depuis l\'appareil',
-    ja: 'デバイスから直接撮影',
-    ko: '기기에서 직접 촬영',
-    zh: '直接从设备拍摄'
-  },
-  'Tải ảnh từ thư viện': {
-    en: 'Upload image from library',
-    fr: 'Importer depuis la bibliothèque',
-    ja: 'ライブラリから画像をアップロード',
-    ko: '라이브러리에서 이미지 업로드',
-    zh: '从相册上传图片'
-  },
-  'Chụp trực tiếp': {
-    en: 'Live Capture',
-    fr: 'Capture en direct',
-    ja: 'ライブ撮影',
-    ko: '라이브 촬영',
-    zh: '实时拍摄'
-  },
-  'Tải tệp': {
-    en: 'Upload File',
-    fr: 'Importer Fichier',
-    ja: 'ファイルアップロード',
-    ko: '파일 업로드',
-    zh: '上传文件'
-  },
-  'Ảnh vừa chụp từ Camera': {
-    en: 'Captured from Camera',
-    fr: 'Capturé par la Caméra',
-    ja: 'カメラで撮影した写真',
-    ko: '카메라로 촬영한 사진',
-    zh: '相机拍摄照片'
-  },
-  'Ảnh mẫu thử nghiệm': {
-    en: 'Preset Test Image',
-    fr: 'Image Test Prédéfinie',
-    ja: 'プリセットテスト画像',
-    ko: '프리셋 테스트 이미지',
-    zh: '预设测试图片'
-  },
-  'Ảnh từ thiết bị': {
-    en: 'Uploaded from Device',
-    fr: 'Importé de l\'appareil',
-    ja: 'デバイスからアップロード',
-    ko: '기기에서 업로드',
-    zh: '自设备上传'
-  },
-  'Chụp lại': {
-    en: 'Retake',
-    fr: 'Reprendre',
-    ja: '再撮影',
-    ko: '다시 촬영',
-    zh: '重拍'
-  },
-  'LIVE • Căn góc di sản': {
-    en: 'LIVE • Align Heritage',
-    fr: 'DIRECT • Centrer le site',
-    ja: 'LIVE • 遺産を合わせる',
-    ko: 'LIVE • 문화유산 맞추기',
-    zh: 'LIVE • 对准遗迹'
-  },
-  'Hướng camera vào di tích, hoa văn, hiện vật hoặc cổ phục': {
-    en: 'Point camera at monuments, patterns, artifacts or historic costumes',
-    fr: 'Pointez la caméra vers des monuments, motifs ou costumes',
-    ja: 'カメラを記念碑、模様、古美術品、伝統衣装に向けてください',
-    ko: '카메라를 기념비, 문양, 유물 또는 전통 의상에 맞추세요',
-    zh: '将相机对准古迹、纹样、文物或传统服饰'
-  },
-  'Kích hoạt Máy Ảnh Chụp Trực Tiếp': {
-    en: 'Activate Live Camera',
-    fr: 'Activer la Caméra en Direct',
-    ja: 'ライブカメラを起動',
-    ko: '라이브 카메라 활성화',
-    zh: '激活实时相机'
-  },
-  'Thử lại Camera': {
-    en: 'Retry Camera',
-    fr: 'Réessayer la Caméra',
-    ja: 'カメラ再試行',
-    ko: 'カメラ 다시 시도',
-    zh: '重试相机'
-  },
-  'Mở Camera máy': {
-    en: 'Open Device Camera',
-    fr: 'Ouvrir l\'Appareil Photo',
-    ja: '端末のカメラを開く',
-    ko: '기기 카메라 열기',
-    zh: '打开手机相机'
-  },
-  'Camera máy': {
-    en: 'Device Cam',
-    fr: 'Caméra Appareil',
-    ja: '端末カメラ',
-    ko: '기기 카메라',
-    zh: '手机相机'
-  },
-  'Chụp & Nhận Diện Ngay': {
-    en: 'Capture & Recognize Now',
-    fr: 'Capturer & Reconnaître',
-    ja: '撮影して今すぐ認識',
-    ko: '촬영 및 즉시 인식',
-    zh: '拍摄并立即识别'
-  },
-  'Đổi chiều': {
-    en: 'Flip',
-    fr: 'Inverser',
-    ja: '切り替え',
-    ko: '전환',
-    zh: '翻转'
-  },
-  'Tự động nhận diện AI ngay khi bấm chụp (Tối ưu 1 chạm)': {
-    en: 'Auto-recognize AI immediately on shutter (1-tap optimized)',
-    fr: 'Reconnaissance auto immédiate (optimisé 1-clic)',
-    ja: 'シャッター時に自動AI認識（ワンタップ最適化）',
-    ko: '촬영 시 즉시 자동 AI 인식 (원탭 최적화)',
-    zh: '按下快门时自动AI识别（一键优化）'
-  },
-  'Ghi chú bổ sung cho AI (tùy chọn):': {
-    en: 'Additional note for AI (optional):',
-    fr: 'Note additionnelle pour l\'IA (optionnel) :',
-    ja: 'AIへの追加メモ（任意）：',
-    ko: 'AI를 위한 추가 메모 (선택사항):',
-    zh: '给AI的补充说明（可选）：'
-  },
-  'Ví dụ: Hiện vật này tôi thấy tại chùa ở Bắc Ninh...': {
-    en: 'Example: I found this artifact at a pagoda in Bac Ninh...',
-    fr: 'Exemple : J\'ai trouvé cet objet dans une pagode...',
-    ja: '例：バクニン省の寺院でこの遺物を見つけました...',
-    ko: '예: 박닌의 사원에서 이 유물을 보았습니다...',
-    zh: '例如：我在北宁省的一座寺庙里看到了这件文物...'
-  },
-  'AI đang phân tích thị giác di sản...': {
-    en: 'AI is analyzing heritage vision...',
-    fr: 'L\'IA analyse la vision du patrimoine...',
-    ja: 'AIが遺産のビジュアルを分析中...',
-    ko: 'AI가 문화유산 시각 정보를 분석 중...',
-    zh: 'AI正在分析遗产视觉图像...'
-  },
-  'Bắt đầu Nhận diện Di sản AI': {
-    en: 'Start AI Heritage Recognition',
-    fr: 'Démarrer la Reconnaissance IA',
-    ja: 'AI遺産認識を開始',
-    ko: 'AI 문화유산 인식 시작',
-    zh: '开始AI遗产识别'
-  },
-  'Phân tích lại hình ảnh này': {
-    en: 'Re-analyze this image',
-    fr: 'Réanalyser cette image',
-    ja: 'この画像を再分析',
-    ko: '이 이미지 다시 분석',
-    zh: '重新分析此图像'
-  },
-  'Đang đối chiếu dữ liệu di sản Việt Nam': {
-    en: 'Matching Vietnamese heritage database',
-    fr: 'Correspondance avec la base du patrimoine vietnamien',
-    ja: 'ベトナム文化遺産データベースと照合中',
-    ko: '베트남 문화유산 데이터베이스 대조 중',
-    zh: '正在比对越南文化遗产数据库'
-  },
-  'Mô hình Gemini 3.8 Flash Vision đang phân tích đặc trưng kiến trúc, hoa văn, niên đại và độ tin cậy lịch sử...': {
-    en: 'Gemini 3.8 Flash Vision is analyzing architectural features, patterns, periods and historical reliability...',
-    fr: 'Gemini 3.8 Flash Vision analyse l\'architecture, les motifs et la fiabilité historique...',
-    ja: 'Gemini 3.8 Flash Visionが建築の特徴、模様、時代、歴史的信頼性を分析しています...',
-    ko: 'Gemini 3.8 Flash Vision이 건축적 특징, 문양, 연대 및 역사적 신뢰성을 분석 중입니다...',
-    zh: 'Gemini 3.8 Flash Vision 正在分析建筑特征、纹样、历史年代与考证可信度...'
-  },
-  'Chưa có kết quả nhận diện': {
-    en: 'No recognition result yet',
-    fr: 'Aucun résultat de reconnaissance',
-    ja: '認識結果はまだありません',
-    ko: '아직 인식 결과가 없습니다',
-    zh: '暂无识别结果'
-  },
-  'Chỉ cần hướng camera vào di tích, hoa văn, hiện vật hoặc cổ phục': {
-    en: 'Simply point your camera at a monument, pattern, artifact or historic costume',
-    fr: 'Pointez simplement la caméra vers un monument, un motif ou un artefact',
-    ja: '記念碑、模様、古美術品、伝統衣装にカメラを向けてください',
-    ko: '기념비, 문양, 유물 또는 전통 의상에 카메라를 향하세요',
-    zh: '只需将相机对准古迹、纹样、文物或传统服饰'
-  },
-  '[THÔNG TIN ĐÃ XÁC MINH]': {
-    en: '[VERIFIED INFORMATION]',
-    fr: '[INFORMATION VÉRIFIÉE]',
-    ja: '[検証済み情報]',
-    ko: '[검증된 정보]',
-    zh: '[已核实信息]'
-  },
-  '[TRUYỀN THUYẾT / DÂN GIAN]': {
-    en: '[FOLK LEGEND / MYTH]',
-    fr: '[LÉGENDE / MYTHE]',
-    ja: '[民俗伝承・伝説]',
-    ko: '[전설 / 민속]',
-    zh: '[民间传说]'
-  },
-  '[THÔNG TIN CHƯA XÁC MINH]': {
-    en: '[UNVERIFIED INFORMATION]',
-    fr: '[INFORMATION NON VÉRIFIÉE]',
-    ja: '[未検証の情報]',
-    ko: '[미검증 정보]',
-    zh: '[未核实信息]'
-  },
-  'Lịch sử & Nguồn gốc:': {
-    en: 'History & Origin:',
-    fr: 'Histoire & Origine :',
-    ja: '歴史と起源：',
-    ko: '역사 및 기원:',
-    zh: '历史与起源：'
-  },
-  'Ý nghĩa Văn hóa & Kiến trúc:': {
-    en: 'Cultural & Architectural Significance:',
-    fr: 'Signification Culturelle & Architecturale :',
-    ja: '文化・建築的意義：',
-    ko: '문화 및 건축적 의의:',
-    zh: '文化与建筑意义：'
-  },
-  'Thông tin thú vị ít người biết:': {
-    en: 'Little-known interesting facts:',
-    fr: 'Faits insolites peu connus :',
-    ja: 'あまり知られていない興味深い事実：',
-    ko: '잘 알려지지 않은 흥미로운 사실:',
-    zh: '鲜为人知的趣闻轶事：'
-  },
-  'Câu hỏi gợi ý để tìm hiểu sâu hơn:': {
-    en: 'Suggested questions to explore deeper:',
-    fr: 'Questions suggérées pour explorer plus en profondeur :',
-    ja: 'さらに深く探求するためのおすすめの質問：',
-    ko: '더 깊이 탐구하기 위한 추천 질문:',
-    zh: '深入探索的建议提问：'
-  },
-  'Nghe AI kể chuyện': {
-    en: 'Listen AI Story',
-    fr: 'Écouter l\'histoire IA',
-    ja: 'AIストーリーを聴く',
-    ko: 'AI 스토리 듣기',
-    zh: '聆听AI故事'
-  },
-  'Ăn uống & Vui chơi gần đây': {
-    en: 'Nearby Food & Leisure',
-    fr: 'Gastronomie & Loisirs Proches',
-    ja: '周辺のグルメ＆レジャー',
-    ko: '주변 음식 & 즐길거리',
-    zh: '周边美食与休闲'
-  },
-  'Xem vị trí trên bản đồ': {
-    en: 'View location on map',
-    fr: 'Voir l\'emplacement sur la carte',
-    ja: '地図で場所を見る',
-    ko: '지도에서 위치 보기',
-    zh: '在地图上查看位置'
-  },
-  'Admin: Tùy chỉnh nội dung & ảnh mẫu nhận diện': {
-    en: 'Admin: Customize content & recognition sample images',
-    fr: 'Admin : Personnaliser le contenu & les images d\'échantillon',
-    ja: '管理者：コンテンツと認識サンプル画像をカスタマイズ',
-    ko: '관리자: 콘텐츠 및 인식 샘플 이미지 사용자 지정',
-    zh: '管理员：自定义内容与识别样本图片'
-  },
-  'Đang ở Chế độ Nhận Diện AI Ngoại Tuyến (Offline Visual Engine)': {
-    en: 'Offline Visual AI Recognition Mode Active',
-    fr: 'Mode de reconnaissance visuelle IA hors ligne actif',
-    ja: 'オフラインビジュアルAI認識モード有効',
-    ko: '오프라인 비주얼 AI 인식 모드 활성화됨',
-    zh: '离线视觉AI识别模式已激活'
-  },
 
   // Categories and Regions
   'Di tích lịch sử': { en: 'Historical Monument', fr: 'Monument historique', ja: '歴史史跡', ko: '역사 유적', zh: '历史遗迹' },
@@ -1802,7 +1529,7 @@ export const PHRASE_TRANSLATIONS: Record<string, Record<string, string>> = {
 
   // Iconic Landmarks & Cultural Relics
   'Văn Miếu - Quốc Tử Giám & Hồ Gươm': { en: 'Temple of Literature & Sword Lake', fr: 'Temple de la Littérature & Lac de l\'Épée', ja: '文廟・ホアンキエム湖', ko: '문묘 & 호안끼엠 호수', zh: '文庙·国子监与还剑湖' },
-  'Văn Miếu - Quốc Tử Giám': { en: 'Temple of Literature', fr: 'Temple de la Littérature', ja: '文廟・国子監', ko: '문묘 - 국자감', zh: '文庙·国子监' },
+  'Văn Miếu - Quốc Tử Giám': { vi: 'Văn Miếu - Quốc Tử Giám', en: 'Temple of Literature - Imperial Academy', fr: 'Temple de la Littérature - Académie Impériale', ja: '文廟・国子監', ko: '문묘 - 국자감', zh: '文庙·国子监' },
   'Hồ Gươm': { en: 'Sword Lake (Hoan Kiem Lake)', fr: 'Lac de l\'Épée Restituée', ja: 'ホアンキエム湖', ko: '호안끼엠 호수', zh: '还剑湖' },
   'Đền Ngọc Sơn & Cầu Thê Húc': { en: 'Ngoc Son Temple & The Huc Bridge', fr: 'Temple Ngoc Son & Pont The Huc', ja: '玉山祠・棲旭橋', ko: '응옥선 사당 & 테훅 다리', zh: '玉山祠与栖旭桥' },
   'Đền Ngọc Sơn': { en: 'Ngoc Son Temple', fr: 'Temple Ngoc Son', ja: '玉山祠', ko: '응옥선 사당', zh: '玉山祠' },
@@ -1812,7 +1539,7 @@ export const PHRASE_TRANSLATIONS: Record<string, Record<string, string>> = {
   'Quần thể di tích Cố đô Huế': { en: 'Complex of Hue Monuments', fr: 'Ensemble de monuments de Hué', ja: 'フエの建造物群', ko: '후에 기념물 복합 지구', zh: '顺化古迹建筑群' },
   'Đại Nội Cung Đình Huế & Sông Hương': { en: 'Hue Imperial Citadel & Perfume River', fr: 'Cité Impériale de Hué & Rivière des Parfums', ja: 'フエ王宮・香江', ko: '후에 황궁 & 흐엉강', zh: '顺化皇城与香江' },
   'Đại Nội Huế': { en: 'Hue Imperial Citadel', fr: 'Cité Impériale de Hué', ja: 'フエ王宮', ko: '후에 황궁', zh: '顺化皇城' },
-  'Vịnh Hạ Long': { en: 'Ha Long Bay', fr: 'Baie d\'Ha Long', ja: 'ハロン湾', ko: '하롱베이', zh: '下龙湾' },
+  'Vịnh Hạ Long': { en: 'Ha Long Bay', fr: 'Baie d\'Ha Long', ja: 'ハ隆湾', ko: '하롱베이', zh: '下龙湾' },
   'Phố cổ Hội An': { en: 'Hoi An Ancient Town', fr: 'Vieille ville de Hoi An', ja: '古都ホイアン', ko: '호이안 고대 도시', zh: '会安古镇' },
   'Quần thể danh thắng Tràng An': { en: 'Trang An Scenic Landscape Complex', fr: 'Complexe paysager de Trang An', ja: 'チャンアンの景観複合体', ko: '짱안 경관 단지', zh: '长安名胜群' },
   'Thánh địa Mỹ Sơn': { en: 'My Son Sanctuary', fr: 'Sanctuaire de My Son', ja: 'ミーソン聖域', ko: '미선 성지', zh: '美山圣地' },
@@ -1825,8 +1552,8 @@ export const PHRASE_TRANSLATIONS: Record<string, Record<string, string>> = {
   'Thác Bản Giốc': { en: 'Ban Gioc Waterfall', fr: 'Chutes de Ban Gioc', ja: 'バンゾック滝', ko: '반족 폭포', zh: '板约瀑布' },
   'Hồ Ba Bể': { en: 'Ba Be Lake', fr: 'Lac Ba Be', ja: 'バーベー湖', ko: '바베 호수', zh: '巴卑湖' },
   'Động Phong Nha': { en: 'Phong Nha Cave', fr: 'Grotte de Phong Nha', ja: 'フォンニャ洞窟', ko: '퐁냐 동굴', zh: '风牙洞' },
-  'Gốm Bát Tràng': { en: 'Bat Trang Pottery', fr: 'Poterie de Bat Trang', ja: 'バッチャン焼き', ko: '밧짱 도자기', zh: '钵场陶瓷' },
-  'Tranh Đông Hồ': { en: 'Dong Ho Folk Painting', fr: 'Estampes de Dong Ho', ja: 'ドンホー版画', ko: '동호 민화', zh: '东湖民画' },
+  'Gốm Bát Tràng': { vi: 'Gốm Bát Tràng', en: 'Bat Trang Ceramic Village', fr: 'Village de Potiers de Bat Trang', ja: 'バッチャン陶芸村', ko: '밧짱 도자기 마을', zh: '钵场陶瓷古村' },
+  'Tranh Đông Hồ': { vi: 'Tranh Đông Hồ', en: 'Dong Ho Folk Woodblock Painting', fr: 'Estampes Populaires de Dong Ho', ja: 'ドンホー版画（伝統木版画）', ko: '동호 민속 판화', zh: '东湖民间木版年画' },
   'Lụa Vạn Phúc': { en: 'Van Phuc Silk', fr: 'Soie de Van Phuc', ja: 'ヴァンフックシルク', ko: '반푹 비단', zh: '万福丝绸' },
   'Nón lá Tây Hồ': { en: 'Tay Ho Conical Hat', fr: 'Chapeau conique de Tay Ho', ja: 'ノンラー（西湖）', ko: '논라 (떠이호)', zh: '西湖斗笠' },
   'Nhã nhạc Cung đình Huế': { en: 'Hue Court Music (Nha Nhac)', fr: 'Nha Nhac, musique de cour', ja: 'フエの雅楽', ko: '후에 궁중음악', zh: '顺化宫廷雅乐' },
@@ -2211,6 +1938,1032 @@ export const PHRASE_TRANSLATIONS: Record<string, Record<string, string>> = {
     ja: '管理者権限',
     ko: '관리자 권한',
     zh: '管理员权限'
+  },
+  // AI Image Recognizer / Vision Lens Section
+  '✨ Thị giác Máy tính & AI Văn hóa Việt Nam': {
+    vi: '✨ Thị giác Máy tính & AI Văn hóa Việt Nam',
+    en: '✨ Computer Vision & Vietnam Cultural AI',
+    fr: '✨ Vision par Ordinateur & IA Culturelle du Vietnam',
+    ja: '✨ コンピュータビジョン＆ベトナム文化AI',
+    ko: '✨ 컴퓨터 비전 & 베트남 문화 AI',
+    zh: '✨ 计算机视觉与越南文化AI'
+  },
+  'Thị giác Máy tính & AI Văn hóa Việt Nam': {
+    vi: 'Thị giác Máy tính & AI Văn hóa Việt Nam',
+    en: 'Computer Vision & Vietnam Cultural AI',
+    fr: 'Vision par Ordinateur & IA Culturelle du Vietnam',
+    ja: 'コンピュータビジョン＆ベトナム文化AI',
+    ko: '컴퓨터 비전 & 베트남 문화 AI',
+    zh: '计算机视觉与越南文化AI'
+  },
+  'Nhận diện Di sản, Hiện vật & Cổ phục': {
+    vi: 'Nhận diện Di sản, Hiện vật & Cổ phục',
+    en: 'Recognize Heritage, Artifacts & Costumes',
+    fr: 'Reconnaissance du Patrimoine, Objets & Costumes',
+    ja: '世界遺産・古美術品・伝統衣装のAI認識',
+    ko: '문화유산, 유물 & 전통의상 AI 인식',
+    zh: '文化遗产、历史文物与传统服饰识别'
+  },
+  'Nhận diện Di sản': {
+    vi: 'Nhận diện Di sản',
+    en: 'Heritage Recognition',
+    fr: 'Reconnaissance du Patrimoine',
+    ja: '遺産認識',
+    ko: '문화유산 인식',
+    zh: '文化遗产识别'
+  },
+  'Chụp ảnh trực tiếp hoặc tải hình ảnh di tích, đình chùa, làng nghề, nhạc cụ, cổ phục để AI phân tích tức thì.': {
+    vi: 'Chụp ảnh trực tiếp hoặc tải hình ảnh di tích, đình chùa, làng nghề, nhạc cụ, cổ phục để AI phân tích tức thì.',
+    en: 'Capture live photos or upload images of monuments, pagodas, craft villages, instruments, and costumes for instant AI analysis.',
+    fr: 'Prenez une photo en direct ou téléchargez une image de monuments, pagodes, villages artisanaux, instruments et costumes pour une analyse IA instantanée.',
+    ja: '写真の撮影または画像アップロードにより、寺院、工芸村、楽器、伝統衣装をAIが瞬時に分析・解説します。',
+    ko: '유적지, 사찰, 공예마을, 악기, 전통의상을 직접 촬영하거나 사진을 업로드하여 AI의 즉각적인 분석을 받아보세요.',
+    zh: '现场拍照或上传古迹、寺庙、手艺村、乐器与古装图片，获取AI即时深度解析。'
+  },
+  ': ẢNH MẪU THỬ NGHIỆM NHANH MỘT CHẠM:': {
+    vi: ': ẢNH MẪU THỬ NGHIỆM NHANH MỘT CHẠM:',
+    en: ': QUICK ONE-TOUCH SAMPLE PRESETS:',
+    fr: ': ÉCHANTILLONS D\'ESSAI RAPIDE EN UN CLIC :',
+    ja: ': ワンタップで試せるサンプル画像：',
+    ko: ': 원터치 빠른 체험용 샘플 이미지:',
+    zh: ': 一键快速体验测试样本：'
+  },
+  'ẢNH MẪU THỬ NGHIỆM NHANH MỘT CHẠM:': {
+    vi: 'ẢNH MẪU THỬ NGHIỆM NHANH MỘT CHẠM:',
+    en: 'QUICK ONE-TOUCH SAMPLE PRESETS:',
+    fr: 'ÉCHANTILLONS D\'ESSAI RAPIDE EN UN CLIC :',
+    ja: 'ワンタップで試せるサンプル画像：',
+    ko: '원터치 빠른 체험용 샘플 이미지:',
+    zh: '一键快速体验测试样本：'
+  },
+  'ẢNH MẪU THỬ NGHIỆM NHANH MỘT CHẠM': {
+    vi: 'ẢNH MẪU THỬ NGHIỆM NHANH MỘT CHẠM',
+    en: 'QUICK ONE-TOUCH SAMPLE PRESETS',
+    fr: 'ÉCHANTILLONS D\'ESSAI RAPIDE',
+    ja: 'ワンタップで試せるサンプル画像',
+    ko: '원터치 빠른 체험용 샘플 이미지',
+    zh: '一键快速体验测试样本'
+  },
+  'Ảnh mẫu thử nghiệm nhanh một chạm:': {
+    vi: 'Ảnh mẫu thử nghiệm nhanh một chạm:',
+    en: 'Quick one-touch sample presets:',
+    fr: 'Échantillons d\'essai rapide en un clic :',
+    ja: 'ワンタップで試せるサンプル画像：',
+    ko: '원터치 빠른 체험용 샘플 이미지:',
+    zh: '一键快速体验测试样本：'
+  },
+  'Ảnh mẫu thử nghiệm nhanh một chạm': {
+    vi: 'Ảnh mẫu thử nghiệm nhanh một chạm',
+    en: 'Quick one-touch sample presets',
+    fr: 'Échantillons d\'essai rapide',
+    ja: 'ワンタップで試せるサンプル画像',
+    ko: '원터치 빠른 체험용 샘플 이미지',
+    zh: '一键快速体验测试样本'
+  },
+  'Đại Nội Huế (Ngọ Môn)': {
+    vi: 'Đại Nội Huế (Ngọ Môn)',
+    en: 'Imperial City of Hue (Ngo Mon Gate)',
+    fr: 'Cité Impériale de Hué (Porte du Midi)',
+    ja: 'フエ王宮（午門）',
+    ko: '후에 황궁 (오문)',
+    zh: '顺化皇城（午门）'
+  },
+  'Hoàng thành & Cung điện': {
+    vi: 'Hoàng thành & Cung điện',
+    en: 'Imperial Citadels & Palaces',
+    fr: 'Cités Impériales & Palais',
+    ja: '皇城・宮殿',
+    ko: '황성 & 궁궐',
+    zh: '皇城与宫殿'
+  },
+  'Temple of Literature': {
+    vi: 'Văn Miếu - Quốc Tử Giám',
+    en: 'Temple of Literature',
+    fr: 'Temple de la Littérature',
+    ja: '文廟・国子監',
+    ko: '문묘 - 국자감',
+    zh: '文庙·国子监'
+  },
+  'Di tích Lịch sử & Giáo dục': {
+    vi: 'Di tích Lịch sử & Giáo dục',
+    en: 'Historical & Educational Site',
+    fr: 'Site Historique & Éducatif',
+    ja: '歴史・教育史跡',
+    ko: '역사 & 교육 유적',
+    zh: '历史与教育古迹'
+  },
+  'Áo Nhật Bình triều Nguyễn': {
+    vi: 'Áo Nhật Bình triều Nguyễn',
+    en: 'Nguyen Dynasty Nhat Binh Costume',
+    fr: 'Costume Nhat Binh de la Dynastie Nguyen',
+    ja: '阮朝の日平衣（伝統宮廷衣装）',
+    ko: '응우옌 왕조 녓빈 전통의상',
+    zh: '阮朝日平衣（传统宫廷服饰）'
+  },
+  'Cổ phục & Trang phục truyền thống': {
+    vi: 'Cổ phục & Trang phục truyền thống',
+    en: 'Historic & Traditional Costumes',
+    fr: 'Costumes Historiques & Traditionnels',
+    ja: '伝統宮廷衣装・古式服飾',
+    ko: '고전 복식 & 전통 의상',
+    zh: '历史古装与传统服饰'
+  },
+  'Đàn Bầu Việt Nam': {
+    vi: 'Đàn Bầu Việt Nam',
+    en: 'Vietnamese Monochord (Dan Bau)',
+    fr: 'Dan Bau (Monocorde vietnamien)',
+    ja: 'ベトナム単弦琴（ダン・バウ）',
+    ko: '베트남 단바우 (단현금)',
+    zh: '越南独弦琴（单弦琴）'
+  },
+  'Nhạc cụ cổ truyền': {
+    vi: 'Nhạc cụ cổ truyền',
+    en: 'Traditional Musical Instrument',
+    fr: 'Instrument de Musique Traditionnel',
+    ja: '伝統民族楽器',
+    ko: '전통 악기',
+    zh: '传统民族乐器'
+  },
+  'Làng nghề dân gian': {
+    vi: 'Làng nghề dân gian',
+    en: 'Folk Craft Village',
+    fr: 'Village d\'Artisanat Populaire',
+    ja: '伝統民芸・工芸村',
+    ko: '민속 공예 마을',
+    zh: '民间传统手艺古村'
+  },
+  'Làng nghề gốm sứ': {
+    vi: 'Làng nghề gốm sứ',
+    en: 'Ceramic & Pottery Village',
+    fr: 'Village de Céramique & Poterie',
+    ja: '陶磁器工芸村',
+    ko: '도자기 공예 마을',
+    zh: '陶瓷手艺名村'
+  },
+  'Trống Đồng Đông Sơn': {
+    vi: 'Trống Đồng Đông Sơn',
+    en: 'Dong Son Bronze Drum',
+    fr: 'Tambour de Bronze de Dong Son',
+    ja: 'ドンソン青銅太鼓',
+    ko: '동선 청동북',
+    zh: '东山青铜鼓'
+  },
+  'Bảo vật hoàng cung': {
+    vi: 'Bảo vật hoàng cung',
+    en: 'Imperial & National Treasure',
+    fr: 'Trésor Impérial & National',
+    ja: '皇室・国家の至宝',
+    ko: '황실 및 국가 보물',
+    zh: '皇室与国家至宝'
+  },
+  'Bảo vật hoàng cung / Cổ vật': {
+    vi: 'Bảo vật hoàng cung / Cổ vật',
+    en: 'Imperial Treasure / Ancient Relic',
+    fr: 'Trésor Impérial / Relique Ancienne',
+    ja: '皇室至宝・古美術品',
+    ko: '황실 보물 / 고대 유물',
+    zh: '皇室国宝 / 历史古物'
+  },
+  'Chùa Cầu Hội An': {
+    vi: 'Chùa Cầu Hội An',
+    en: 'Hoi An Japanese Covered Bridge',
+    fr: 'Pont Couvert Japonais de Hoi An',
+    ja: 'ホイアン来遠橋（日本橋）',
+    ko: '호이안 내원교 (일본다리)',
+    zh: '会安来远桥（日本桥）'
+  },
+  'Đô thị Cổ & Kiến trúc gỗ': {
+    vi: 'Đô thị Cổ & Kiến trúc gỗ',
+    en: 'Ancient Town & Wooden Architecture',
+    fr: 'Vieille Ville & Architecture en Bois',
+    ja: '古都・木造建築',
+    ko: '고대 도시 & 목조 건축',
+    zh: '古老街市与木造建筑'
+  },
+  'Làng Gốm Bát Tràng': {
+    vi: 'Làng Gốm Bát Tràng',
+    en: 'Bat Trang Ceramic Village',
+    fr: 'Village de Potiers de Bat Trang',
+    ja: 'バッチャン陶芸村',
+    ko: '밧짱 도자기 마을',
+    zh: '钵场陶瓷古村'
+  },
+  'Làng nghề Thủ công Truyền thống': {
+    vi: 'Làng nghề Thủ công Truyền thống',
+    en: 'Traditional Craft Village',
+    fr: 'Village Artisanal Traditionnel',
+    ja: '伝統手工芸村',
+    ko: '전통 수공예 마을',
+    zh: '传统手工艺村落'
+  },
+  'Làng nghề Thủ công Truyền...': {
+    vi: 'Làng nghề Thủ công Truyền...',
+    en: 'Traditional Craft Village...',
+    fr: 'Village Artisanal...',
+    ja: '伝統工芸村...',
+    ko: '전통 공예 마을...',
+    zh: '传统手艺古村...'
+  },
+  'Áo Dài & Cổ Phục Việt Nam': {
+    vi: 'Áo Dài & Cổ Phục Việt Nam',
+    en: 'Ao Dai & Traditional Costumes',
+    fr: 'Ao Dai & Costumes Traditionnels',
+    ja: 'アオザイとベトナムの伝統衣装',
+    ko: '아오자이 & 베트남 전통의상',
+    zh: '奥黛与越南传统服饰'
+  },
+  'Áo Dài & Cổ Phục Việt...': {
+    vi: 'Áo Dài & Cổ Phục Việt...',
+    en: 'Ao Dai & Costumes...',
+    fr: 'Ao Dai & Costumes...',
+    ja: 'アオザイ＆伝統衣装...',
+    ko: '아오자이 & 전통의상...',
+    zh: '奥黛与古装服饰...'
+  },
+  'Trang phục Truyền thống': {
+    vi: 'Trang phục Truyền thống',
+    en: 'Traditional Costumes',
+    fr: 'Costumes Traditionnels',
+    ja: '伝統衣装',
+    ko: '전통 의상',
+    zh: '传统服饰'
+  },
+  'Chùa Thiên Mụ & Tháp Phước Duyên': {
+    vi: 'Chùa Thiên Mụ & Tháp Phước Duyên',
+    en: 'Thien Mu Pagoda & Phuoc Duyen Tower',
+    fr: 'Pagode Thien Mu & Tour Phuoc Duyen',
+    ja: 'ティエンムー寺・福縁塔',
+    ko: '티엔무 사찰 & 프억지엔 탑',
+    zh: '天姥寺与福缘塔'
+  },
+  'Chùa Thiên Mụ & Tháp...': {
+    vi: 'Chùa Thiên Mụ & Tháp...',
+    en: 'Thien Mu Pagoda & Tower...',
+    fr: 'Pagode Thien Mu...',
+    ja: 'ティエンムー寺＆塔...',
+    ko: '티엔무 사찰 & 탑...',
+    zh: '天姥寺与古塔...'
+  },
+  'Chùa cổ & Phật giáo': {
+    vi: 'Chùa cổ & Phật giáo',
+    en: 'Ancient Pagodas & Buddhism',
+    fr: 'Pagodes Anciennes & Bouddhisme',
+    ja: '古刹・仏教寺院',
+    ko: '고대 사찰 & 불교',
+    zh: '古刹与佛教文化'
+  },
+  'Ống Kính AI Di Sản': {
+    vi: 'Ống Kính AI Di Sản',
+    en: 'Heritage AI Vision Lens',
+    fr: 'Objectif IA du Patrimoine',
+    ja: '遺産AIビジョンレンズ',
+    ko: '문화유산 AI 비전 렌즈',
+    zh: '文化遗产AI视觉透镜'
+  },
+  'Heritage AI Vision Lens': {
+    vi: 'Ống Kính AI Di Sản',
+    en: 'Heritage AI Vision Lens',
+    fr: 'Objectif IA du Patrimoine',
+    ja: '遺産AIビジョンレンズ',
+    ko: '문화유산 AI 비전 렌즈',
+    zh: '文化遗产AI视觉透镜'
+  },
+  'Chụp ảnh trực tiếp từ thiết bị': {
+    vi: 'Chụp ảnh trực tiếp từ thiết bị',
+    en: 'Capture photo directly from device',
+    fr: 'Prendre une photo directement depuis l\'appareil',
+    ja: 'デバイスから直接写真を撮影',
+    ko: '기기에서 직접 사진 촬영',
+    zh: '从设备直接拍摄照片'
+  },
+  'Capture photo directly from device': {
+    vi: 'Chụp ảnh trực tiếp từ thiết bị',
+    en: 'Capture photo directly from device',
+    fr: 'Prendre une photo directement depuis l\'appareil',
+    ja: 'デバイスから直接写真を撮影',
+    ko: '기기에서 직접 사진 촬영',
+    zh: '从设备直接拍摄照片'
+  },
+  'Tải ảnh từ thư viện': {
+    vi: 'Tải ảnh từ thư viện',
+    en: 'Upload photo from library',
+    fr: 'Télécharger depuis la galerie',
+    ja: 'ライブラリから写真をアップロード',
+    ko: '갤러리에서 사진 업로드',
+    zh: '从相册上传照片'
+  },
+  'Chụp trực tiếp': {
+    vi: 'Chụp trực tiếp',
+    en: 'Live Capture',
+    fr: 'Capture Directe',
+    ja: 'リアルタイム撮影',
+    ko: '실시간 촬영',
+    zh: '实时拍摄'
+  },
+  'Live Capture': {
+    vi: 'Chụp trực tiếp',
+    en: 'Live Capture',
+    fr: 'Capture Directe',
+    ja: 'リアルタイム撮影',
+    ko: '실시간 촬영',
+    zh: '实时拍摄'
+  },
+  'Tải tệp': {
+    vi: 'Tải tệp',
+    en: 'Upload File',
+    fr: 'Fichier',
+    ja: 'ファイル選択',
+    ko: '파일 업로드',
+    zh: '上传文件'
+  },
+  'Upload File': {
+    vi: 'Tải tệp',
+    en: 'Upload File',
+    fr: 'Fichier',
+    ja: 'ファイル選択',
+    ko: '파일 업로드',
+    zh: '上传文件'
+  },
+  'Căn góc di sản': {
+    vi: 'Căn góc di sản',
+    en: 'Frame the heritage',
+    fr: 'Cadrez le patrimoine',
+    ja: '遺産を枠内に収める',
+    ko: '초점 맞추기',
+    zh: '对准取景框'
+  },
+  '• Căn góc di sản': {
+    vi: '• Căn góc di sản',
+    en: '• Frame the heritage',
+    fr: '• Cadrez le patrimoine',
+    ja: '• 遺産を枠内に収める',
+    ko: '• 초점 맞추기',
+    zh: '• 对准取景框'
+  },
+  'LIVE • Căn góc di sản': {
+    vi: 'LIVE • Căn góc di sản',
+    en: 'LIVE • Frame the heritage',
+    fr: 'EN DIRECT • Cadrez le patrimoine',
+    ja: 'LIVE • 遺産を枠内に収める',
+    ko: 'LIVE • 초점 맞추기',
+    zh: 'LIVE • 对准取景框'
+  },
+  'Đổi camera trước / sau': {
+    vi: 'Đổi camera trước / sau',
+    en: 'Switch front / rear camera',
+    fr: 'Basculer caméra avant / arrière',
+    ja: 'フロント/リアカメラ切替',
+    ko: '전면 / 후면 카메라 전환',
+    zh: '切换前置 / 后置摄像头'
+  },
+  'Hướng camera vào di tích, hoa văn, hiện vật hoặc cổ phục': {
+    vi: 'Hướng camera vào di tích, hoa văn, hiện vật hoặc cổ phục',
+    en: 'Point camera at monuments, patterns, artifacts or costumes',
+    fr: 'Pointez la caméra vers des monuments, motifs, objets ou costumes',
+    ja: '寺院、文様、古美術品、伝統衣装にカメラを向けてください',
+    ko: '유적지, 전통 문양, 유물 또는 전통의상에 카메라를 향하세요',
+    zh: '请将镜头对准古迹、传统纹样、文物或古装'
+  },
+  'Kích hoạt Máy Ảnh Chụp Trực Tiếp': {
+    vi: 'Kích hoạt Máy Ảnh Chụp Trực Tiếp',
+    en: 'Activate Live Camera',
+    fr: 'Activer la Caméra en Direct',
+    ja: 'ライブカメラを起動',
+    ko: '실시간 카메라 활성화',
+    zh: '开启实时拍摄镜头'
+  },
+  'Cho phép quyền truy cập Camera trên trình duyệt để chụp và nhận diện di sản ngay tại chỗ.': {
+    vi: 'Cho phép quyền truy cập Camera trên trình duyệt để chụp và nhận diện di sản ngay tại chỗ.',
+    en: 'Allow browser camera access to capture and identify heritage on-site.',
+    fr: 'Autorisez l\'accès à la caméra pour capturer et identifier le patrimoine sur place.',
+    ja: 'ブラウザのカメラアクセスを許可して、その場で遺産を撮影・認識します。',
+    ko: '브라우저 카메라 접근 권한을 허용하여 현장에서 즉시 문화유산을 촬영하고 인식하세요.',
+    zh: '请允许浏览器摄像头访问权限，以便在现场拍照并即时识别文化遗产。'
+  },
+  'Thử lại Camera': {
+    vi: 'Thử lại Camera',
+    en: 'Retry Camera',
+    fr: 'Réessayer la Caméra',
+    ja: 'カメラを再試行',
+    ko: '카메라 다시 시도',
+    zh: '重试摄像头'
+  },
+  'Mở Camera máy': {
+    vi: 'Mở Camera máy',
+    en: 'Open Device Camera',
+    fr: 'Ouvrir l\'Appareil Photo',
+    ja: '端末のカメラを開く',
+    ko: '기기 카메라 열기',
+    zh: '打开原生相机'
+  },
+  'Bấm để chọn tệp hoặc kéo thả ảnh vào đây': {
+    vi: 'Bấm để chọn tệp hoặc kéo thả ảnh vào đây',
+    en: 'Click to select file or drag & drop image here',
+    fr: 'Cliquez pour sélectionner un fichier ou glissez-déposez ici',
+    ja: 'クリックしてファイルを選択、または画像をドラッグ＆ドロップ',
+    ko: '파일을 선택하거나 이미지를 여기로 드래그 앤 드롭하세요',
+    zh: '点击选择文件或将图片拖拽至此处'
+  },
+  'Hỗ trợ định dạng JPG, PNG, WEBP (Tối đa 10MB)': {
+    vi: 'Hỗ trợ định dạng JPG, PNG, WEBP (Tối đa 10MB)',
+    en: 'Supports JPG, PNG, WEBP (Up to 10MB)',
+    fr: 'Formats pris en charge : JPG, PNG, WEBP (Max 10 Mo)',
+    ja: '対応形式：JPG、PNG、WEBP（最大10MB）',
+    ko: '지원 형식: JPG, PNG, WEBP (최대 10MB)',
+    zh: '支持 JPG、PNG、WEBP 格式（最大 10MB）'
+  },
+  'Duyệt ảnh từ thiết bị': {
+    vi: 'Duyệt ảnh từ thiết bị',
+    en: 'Browse from device',
+    fr: 'Parcourir l\'appareil',
+    ja: '端末から画像を選択',
+    ko: '기기에서 사진 찾아보기',
+    zh: '从设备浏览选取图片'
+  },
+  'Ảnh vừa chụp từ Camera': {
+    vi: 'Ảnh vừa chụp từ Camera',
+    en: 'Photo captured from Camera',
+    fr: 'Photo capturée depuis la Caméra',
+    ja: 'カメラで撮影した写真',
+    ko: '카메라로 방금 촬영한 사진',
+    zh: '刚刚从相机拍摄的照片'
+  },
+  'Ảnh mẫu thử nghiệm': {
+    vi: 'Ảnh mẫu thử nghiệm',
+    en: 'Sample test photo',
+    fr: 'Photo d\'échantillon d\'essai',
+    ja: 'テスト用サンプル写真',
+    ko: '체험용 샘플 사진',
+    zh: '测试示例照片'
+  },
+  'Ảnh từ thiết bị': {
+    vi: 'Ảnh từ thiết bị',
+    en: 'Photo from device',
+    fr: 'Photo de l\'appareil',
+    ja: '端末からの写真',
+    ko: '기기에서 불러온 사진',
+    zh: '来自设备的本地图片'
+  },
+  'Chụp lại': {
+    vi: 'Chụp lại',
+    en: 'Retake',
+    fr: 'Reprendre',
+    ja: '撮り直す',
+    ko: '다시 촬영',
+    zh: '重新拍摄'
+  },
+  'Chụp lại ảnh khác': {
+    vi: 'Chụp lại ảnh khác',
+    en: 'Retake another photo',
+    fr: 'Reprendre une autre photo',
+    ja: '別の写真を撮り直す',
+    ko: '다른 사진 다시 촬영',
+    zh: '重新拍摄其他照片'
+  },
+  'Camera máy': {
+    vi: 'Camera máy',
+    en: 'Device Cam',
+    fr: 'Caméra de l\'Appareil',
+    ja: '端末カメラ',
+    ko: '기기 카메라',
+    zh: '设备相机'
+  },
+  'Chụp & Nhận Diện Ngay': {
+    vi: 'Chụp & Nhận Diện Ngay',
+    en: 'Capture & Identify Now',
+    fr: 'Capturer & Identifier',
+    ja: '撮影して即座に認識',
+    ko: '촬영 후 즉시 인식',
+    zh: '立即拍照并识别'
+  },
+  'Đổi chiều': {
+    vi: 'Đổi chiều',
+    en: 'Flip',
+    fr: 'Inverser',
+    ja: 'カメラ切替',
+    ko: '방향 전환',
+    zh: '翻转'
+  },
+  'Tự động nhận diện AI ngay khi bấm chụp (Tối ưu 1 chạm)': {
+    vi: 'Tự động nhận diện AI ngay khi bấm chụp (Tối ưu 1 chạm)',
+    en: 'Auto-identify with AI right after snapping (1-tap optimized)',
+    fr: 'Reconnaissance IA automatique dès la prise de vue (Optimisé 1 clic)',
+    ja: '撮影後すぐにAIが自動認識（ワンタップ最適化）',
+    ko: '촬영 즉시 AI가 자동으로 인식 (원터치 최적화)',
+    zh: '拍摄后立即自动执行AI分析（一键极速体验）'
+  },
+  'Ghi chú bối cảnh (tùy chọn)': {
+    vi: 'Ghi chú bối cảnh (tùy chọn)',
+    en: 'Context notes (optional)',
+    fr: 'Notes de contexte (optionnel)',
+    ja: '文脈メモ（任意）',
+    ko: '상황 메모 (선택사항)',
+    zh: '背景线索备注（选填）'
+  },
+  'Ghi chú bổ sung cho AI (tùy chọn):': {
+    vi: 'Ghi chú bổ sung cho AI (tùy chọn):',
+    en: 'Additional note for AI (optional):',
+    fr: 'Note complémentaire pour l\'IA (optionnel) :',
+    ja: 'AIへの追加メモ（任意）：',
+    ko: 'AI를 위한 추가 메모 (선택사항):',
+    zh: '向AI补充背景线索（选填）：'
+  },
+  'Ví dụ: Hiện vật tìm thấy ở Ninh Bình, chụp tại bảo tàng...': {
+    vi: 'Ví dụ: Hiện vật tìm thấy ở Ninh Bình, chụp tại bảo tàng...',
+    en: 'E.g., Artifact found in Ninh Binh, photographed in a museum...',
+    fr: 'Ex. : Objet trouvé à Ninh Binh, photographié au musée...',
+    ja: '例：ニンビンで発見された遺物、博物館にて撮影...',
+    ko: '예: 닌빈에서 발견된 유물, 박물관에서 촬영...',
+    zh: '例如：在宁平发现的古物，拍摄于博物馆...'
+  },
+  'Ví dụ: Hiện vật này tôi thấy tại chùa ở Bắc Ninh...': {
+    vi: 'Ví dụ: Hiện vật này tôi thấy tại chùa ở Bắc Ninh...',
+    en: 'E.g., I saw this artifact at a pagoda in Bac Ninh...',
+    fr: 'Ex. : J\'ai vu cet objet dans une pagode à Bac Ninh...',
+    ja: '例：バクニンの寺院で見かけた仏像・古美術品です...',
+    ko: '예: 박닌의 사찰에서 발견한 유물입니다...',
+    zh: '例如：此文物是我在北宁某古寺见到的...'
+  },
+  'Bắt đầu Nhận diện Di sản AI': {
+    vi: 'Bắt đầu Nhận diện Di sản AI',
+    en: 'Start AI Heritage Recognition',
+    fr: 'Démarrer la Reconnaissance IA',
+    ja: 'AI遺産認識を開始',
+    ko: 'AI 문화유산 인식 시작',
+    zh: '开启AI文化遗产识别'
+  },
+  'Phân tích lại hình ảnh này': {
+    vi: 'Phân tích lại hình ảnh này',
+    en: 'Re-analyze this image',
+    fr: 'Réanalyser cette image',
+    ja: 'この画像を再分析',
+    ko: '이 사진 다시 분석',
+    zh: '重新分析此图片'
+  },
+  'AI đang phân tích thị giác di sản...': {
+    vi: 'AI đang phân tích thị giác di sản...',
+    en: 'AI is analyzing heritage visuals...',
+    fr: 'L\'IA analyse les éléments visuels...',
+    ja: 'AIが遺産の視覚的特徴を分析中...',
+    ko: 'AI가 문화유산 시각 요소를 분석 중입니다...',
+    zh: 'AI 正在对文化遗产图像进行深度分析...'
+  },
+  'Đang đối chiếu dữ liệu di sản Việt Nam': {
+    vi: 'Đang đối chiếu dữ liệu di sản Việt Nam',
+    en: 'Cross-referencing Vietnamese heritage archives',
+    fr: 'Correspondance avec les archives du patrimoine vietnamien',
+    ja: 'ベトナム遺産データベースと照合中',
+    ko: '베트남 문화유산 데이터베이스 대조 중',
+    zh: '正在比对越南国家文化遗产权威档案'
+  },
+  'Mô hình Gemini 3.8 Flash Vision đang phân tích đặc trưng kiến trúc, hoa văn, niên đại và độ tin cậy lịch sử...': {
+    vi: 'Mô hình Gemini 3.8 Flash Vision đang phân tích đặc trưng kiến trúc, hoa văn, niên đại và độ tin cậy lịch sử...',
+    en: 'Gemini 3.8 Flash Vision model is analyzing architectural details, motifs, dynasty, and historical authenticity...',
+    fr: 'Le modèle Gemini 3.8 Flash Vision analyse les détails architecturaux, motifs, époques et l\'authenticité historique...',
+    ja: 'Gemini 3.8 Flash Vision モデルが建築様式、文様、年代、歴史的信憑性を分析中...',
+    ko: 'Gemini 3.8 Flash Vision 모델이 건축 특징, 문양, 연대 및 역사적 신뢰도를 분석 중입니다...',
+    zh: 'Gemini 3.8 Flash Vision 模型正在深度解析建筑风格、传统纹饰、历史朝代与考据可信度...'
+  },
+  'Chưa có kết quả nhận diện': {
+    vi: 'Chưa có kết quả nhận diện',
+    en: 'No recognition result yet',
+    fr: 'Aucun résultat pour le moment',
+    ja: '認識結果はまだありません',
+    ko: '아직 인식 결과가 없습니다',
+    zh: '暂无识别结果'
+  },
+  'No recognition result yet': {
+    vi: 'Chưa có kết quả nhận diện',
+    en: 'No recognition result yet',
+    fr: 'Aucun résultat pour le moment',
+    ja: '認識結果はまだありません',
+    ko: '아직 인식 결과가 없습니다',
+    zh: '暂无识别结果'
+  },
+  'Hãy hướng camera về phía di tích / hiện vật hoặc tải ảnh chụp lên, AI sẽ phân tích và cung cấp hồ sơ văn hóa chi tiết.': {
+    vi: 'Hãy hướng camera về phía di tích / hiện vật hoặc tải ảnh chụp lên, AI sẽ phân tích và cung cấp hồ sơ văn hóa chi tiết.',
+    en: 'Point the camera at a monument or artifact, or upload a photo. AI will analyze and provide a comprehensive cultural profile.',
+    fr: 'Pointez la caméra vers un monument ou un objet, ou téléchargez une photo pour une analyse culturelle détaillée par l\'IA.',
+    ja: '寺院や古美術品にカメラを向けるか写真をアップロードすると、AIが詳細な文化・歴史プロファイルを即座に提供します。',
+    ko: '유적지나 유물에 카메라를 비추거나 사진을 업로드하면 AI가 심층 문화유산 프로필을 상세히 제공합니다.',
+    zh: '请将摄像头对准名胜古迹或珍贵文物，或上传清晰照片，AI将即时呈现详尽的文化档案。'
+  },
+  'Chỉ cần hướng camera vào di sản và bấm "Chụp & Nhận Diện Ngay" hoặc chọn ảnh mẫu phía trên để trải nghiệm.': {
+    vi: 'Chỉ cần hướng camera vào di sản và bấm "Chụp & Nhận Diện Ngay" hoặc chọn ảnh mẫu phía trên để trải nghiệm.',
+    en: 'Simply point the camera at a heritage site and tap "Capture & Identify Now", or select a sample photo above.',
+    fr: 'Pointez simplement la caméra vers un site et cliquez sur "Capturer & Identifier", ou choisissez un échantillon ci-dessus.',
+    ja: 'カメラを遺産に向けて「撮影して即座に認識」を押すか、上のサンプル写真を選択してください。',
+    ko: '카메라를 문화유산에 비추고 "촬영 후 즉시 인식"을 누르거나 상단 샘플 사진을 선택해보세요.',
+    zh: '只需将镜头对准文化遗产并点击“立即拍照识别”，或选择上方的示例图片进行体验。'
+  },
+  '[THÔNG TIN ĐÃ XÁC MINH]': {
+    vi: '[THÔNG TIN ĐÃ XÁC MINH]',
+    en: '[VERIFIED INFORMATION]',
+    fr: '[INFORMATION VÉRIFIÉE]',
+    ja: '[確認済み公式情報]',
+    ko: '[검증된 공식 정보]',
+    zh: '[已证实权威信息]'
+  },
+  '[TRUYỀN THUYẾT / DÂN GIAN]': {
+    vi: '[TRUYỀN THUYẾT / DÂN GIAN]',
+    en: '[FOLKLORE / LEGEND]',
+    fr: '[LÉGENDE / FOLKLORE]',
+    ja: '[民間伝承・伝説]',
+    ko: '[전설 / 민화]',
+    zh: '[民间传说 / 典故]'
+  },
+  '[THÔNG TIN CHƯA XÁC MINH]': {
+    vi: '[THÔNG TIN CHƯA XÁC MINH]',
+    en: '[UNVERIFIED CLAIM]',
+    fr: '[INFORMATION NON VÉRIFIÉE]',
+    ja: '[未確認情報]',
+    ko: '[미확인 정보]',
+    zh: '[未证实信息]'
+  },
+  'Lịch sử & Nguồn gốc:': {
+    vi: 'Lịch sử & Nguồn gốc:',
+    en: 'History & Provenance:',
+    fr: 'Histoire & Origine :',
+    ja: '歴史と起源：',
+    ko: '역사 및 기원:',
+    zh: '历史溯源：'
+  },
+  'Ý nghĩa Văn hóa & Kiến trúc:': {
+    vi: 'Ý nghĩa Văn hóa & Kiến trúc:',
+    en: 'Cultural & Architectural Significance:',
+    fr: 'Signification Culturelle & Architecturale :',
+    ja: '文化的・建築的意義：',
+    ko: '문화 및 건축적 의의:',
+    zh: '文化与建筑价值：'
+  },
+  'Thông tin thú vị ít người biết:': {
+    vi: 'Thông tin thú vị ít người biết:',
+    en: 'Fascinating Facts You May Not Know:',
+    fr: 'Faits insolites peu connus :',
+    ja: 'あまり知られていない興味深い事実：',
+    ko: '흥미로운 비하인드 스토리:',
+    zh: '鲜为人知的趣味知识：'
+  },
+  'Câu hỏi gợi ý để tìm hiểu sâu hơn:': {
+    vi: 'Câu hỏi gợi ý để tìm hiểu sâu hơn:',
+    en: 'Suggested questions to explore deeper:',
+    fr: 'Questions suggérées pour aller plus loin :',
+    ja: 'さらに深く知るためのおすすめの質問：',
+    ko: '더 깊이 알아보기 위한 추천 질문:',
+    zh: '深入探索推荐提问：'
+  },
+  'Nghe AI kể chuyện': {
+    vi: 'Nghe AI kể chuyện',
+    en: 'Listen to AI Story',
+    fr: 'Écouter le récit IA',
+    ja: 'AI物語を聴く',
+    ko: 'AI 이야기 듣기',
+    zh: '聆听AI讲故事'
+  },
+  'Ăn uống & Vui chơi gần đây': {
+    vi: 'Ăn uống & Vui chơi gần đây',
+    en: 'Food & Leisure Nearby',
+    fr: 'Restaurants & Loisirs proches',
+    ja: '周辺のグルメ＆レジャー',
+    ko: '주변 먹거리 & 즐길거리',
+    zh: '周边美食与娱乐'
+  },
+  'Xem vị trí trên bản đồ': {
+    vi: 'Xem vị trí trên bản đồ',
+    en: 'View on map',
+    fr: 'Voir sur la carte',
+    ja: '地図で位置を確認',
+    ko: '지도에서 위치 확인',
+    zh: '在地图上查看位置'
+  },
+  'Admin: Tùy chỉnh nội dung & ảnh mẫu nhận diện': {
+    vi: 'Admin: Tùy chỉnh nội dung & ảnh mẫu nhận diện',
+    en: 'Admin: Customize recognition content & samples',
+    fr: 'Admin : Personnaliser le contenu et les échantillons',
+    ja: '管理者：認識コンテンツとサンプル画像のカスタマイズ',
+    ko: '관리자: 인식 콘텐츠 및 샘플 이미지 설정',
+    zh: '管理员：自定义识别内容与样本图像'
+  },
+  '⚡ Đang ở Chế độ Nhận Diện AI Ngoại Tuyến (Offline Visual Engine)': {
+    vi: '⚡ Đang ở Chế độ Nhận Diện AI Ngoại Tuyến (Offline Visual Engine)',
+    en: '⚡ Offline AI Visual Recognition Mode Active',
+    fr: '⚡ Mode de Reconnaissance IA Hors-ligne Actif',
+    ja: '⚡ オフラインAI視覚認識モード稼働中',
+    ko: '⚡ 오프라인 AI 시각 인식 모드 활성화',
+    zh: '⚡ 离线AI视觉识别模式运行中'
+  },
+  'Phân tích đặc trưng & đối chiếu kho tư liệu di sản lưu trong thiết bị': {
+    vi: 'Phân tích đặc trưng & đối chiếu kho tư liệu di sản lưu trong thiết bị',
+    en: 'Analyzing features & cross-referencing local heritage archive on device',
+    fr: 'Analyse des caractéristiques et correspondance avec les archives locales',
+    ja: '特徴を分析し、端末内の遺産アーカイブと照合',
+    ko: '특징을 분석하고 기기 내 저장된 문화유산 아카이브와 대조',
+    zh: '分析图像特征并对照存储在本地设备中的文化遗产典籍'
+  },
+  // Admin Recognition Modal & Multilingual Editor
+  'Biên Tập Nội Dung & Ảnh Mẫu Nhận Diện AI': {
+    vi: 'Biên Tập Nội Dung & Ảnh Mẫu Nhận Diện AI',
+    en: 'Edit AI Recognition Content & Sample Photos',
+    fr: 'Modifier le Contenu & Échantillons de Reconnaissance IA',
+    ja: 'AI認識コンテンツとサンプル写真の編集',
+    ko: 'AI 인식 콘텐츠 및 샘플 사진 편집',
+    zh: '编辑AI识别内容和示例照片'
+  },
+  'Quyền Quản Trị': {
+    vi: 'Quyền Quản Trị',
+    en: 'Admin Access',
+    fr: 'Accès Administrateur',
+    ja: '管理者権限',
+    ko: '관리자 권한',
+    zh: '管理员权限'
+  },
+  'Tùy chỉnh tiêu đề, câu lệnh gợi ý và danh sách ảnh mẫu thử nghiệm nhanh một chạm': {
+    vi: 'Tùy chỉnh tiêu đề, câu lệnh gợi ý và danh sách ảnh mẫu thử nghiệm nhanh một chạm',
+    en: 'Customize title, prompt suggestions, and one-touch test sample photos',
+    fr: 'Personnaliser le titre, les suggestions d\'invites et les photos échantillons',
+    ja: 'タイトル、プロンプトの提案、ワンタッチテスト用サンプル写真をカスタマイズ',
+    ko: '제목, 프롬프트 제안 및 원터치 테스트 샘플 사진 맞춤 설정',
+    zh: '自定义标题、提示词建议和一键测试示例照片'
+  },
+  'Danh Sách Ảnh Mẫu': {
+    vi: 'Danh Sách Ảnh Mẫu',
+    en: 'Sample Photo List',
+    fr: 'Liste des Photos Échantillons',
+    ja: 'サンプル写真リスト',
+    ko: '샘플 사진 목록',
+    zh: '示例照片列表'
+  },
+  'Tiêu Đề & Lời Dẫn Banner': {
+    vi: 'Tiêu Đề & Lời Dẫn Banner',
+    en: 'Banner Title & Introduction',
+    fr: 'Titre & Introduction de la Bannière',
+    ja: 'バナータイトルと紹介文',
+    ko: '배너 제목 및 소개글',
+    zh: '横幅标题与导语'
+  },
+  'Xem Trước Giao Diện': {
+    vi: 'Xem Trước Giao Diện',
+    en: 'Live UI Preview',
+    fr: 'Aperçu en Direct',
+    ja: 'UIライブプレビュー',
+    ko: 'UI 실시간 미리보기',
+    zh: '界面实时预览'
+  },
+  'Ảnh mẫu thử nghiệm nhận diện một chạm': {
+    vi: 'Ảnh mẫu thử nghiệm nhận diện một chạm',
+    en: 'One-touch test sample photos',
+    fr: 'Photos d\'exemple pour test en un clic',
+    ja: 'ワンタッチ認識テスト用サンプル写真',
+    ko: '원터치 인식 테스트 샘플 사진',
+    zh: '一键识别测试示例照片'
+  },
+  'Người dùng nhấp vào từng thẻ để AI lập tức phân tích và đưa ra thuyết minh lịch sử.': {
+    vi: 'Người dùng nhấp vào từng thẻ để AI lập tức phân tích và đưa ra thuyết minh lịch sử.',
+    en: 'Users click each card for AI to instantly analyze and present historical explanation.',
+    fr: 'Les utilisateurs cliquent sur chaque carte pour que l\'IA analyse et présente l\'histoire.',
+    ja: 'カードをクリックするとAIが即座に分析し、歴史的な解説を提供します。',
+    ko: '사용자가 각 카드를 클릭하면 AI가 즉시 분석하고 역사적 해설을 제공합니다.',
+    zh: '用户点击每张卡片即可让AI立即分析并提供历史讲解。'
+  },
+  'Thêm Ảnh Mẫu Mới': {
+    vi: 'Thêm Ảnh Mẫu Mới',
+    en: 'Add New Sample Photo',
+    fr: 'Ajouter une Nouvelle Photo',
+    ja: '新しいサンプル写真を追加',
+    ko: '새 샘플 사진 추가',
+    zh: '添加新示例照片'
+  },
+  'Khôi Phục Chuẩn': {
+    vi: 'Khôi Phục Chuẩn',
+    en: 'Reset to Default',
+    fr: 'Réinitialiser aux Défauts',
+    ja: 'デフォルトに復元',
+    ko: '기본값으로 복원',
+    zh: '恢复默认标准'
+  },
+  'Thêm Thẻ Ảnh Mẫu Mới': {
+    vi: 'Thêm Thẻ Ảnh Mẫu Mới',
+    en: 'Add New Sample Photo Card',
+    fr: 'Ajouter une Nouvelle Carte Échantillon',
+    ja: '新しいサンプル写真カードを追加',
+    ko: '새 샘플 사진 카드 추가',
+    zh: '添加新示例照片卡片'
+  },
+  'Chỉnh Sửa Mẫu:': {
+    vi: 'Chỉnh Sửa Mẫu:',
+    en: 'Edit Sample:',
+    fr: 'Modifier l\'échantillon :',
+    ja: 'サンプルの編集：',
+    ko: '샘플 수정:',
+    zh: '编辑示例：'
+  },
+  'Tên Di sản / Hiện vật / Cổ phục': {
+    vi: 'Tên Di sản / Hiện vật / Cổ phục',
+    en: 'Heritage / Artifact / Costume Name',
+    fr: 'Nom du Patrimoine / Objet / Costume',
+    ja: '遺産・工芸品・伝統衣装の名称',
+    ko: '문화유산 / 유물 / 전통의상 이름',
+    zh: '文化遗产/文物/传统服饰名称'
+  },
+  'Thể loại / Nhãn phụ': {
+    vi: 'Thể loại / Nhãn phụ',
+    en: 'Category / Sub-tag',
+    fr: 'Catégorie / Sous-étiquette',
+    ja: 'カテゴリー・サブタグ',
+    ko: '카테고리 / 보조 태그',
+    zh: '分类/副标签'
+  },
+  'Câu Lệnh Kiểm Thử Cho AI (Prompt)': {
+    vi: 'Câu Lệnh Kiểm Thử Cho AI (Prompt)',
+    en: 'AI Test Prompt (Prompt)',
+    fr: 'Invite de test pour l\'IA (Prompt)',
+    ja: 'AIテストプロンプト (Prompt)',
+    ko: 'AI 테스트 프롬프트 (Prompt)',
+    zh: 'AI测试提示词 (Prompt)'
+  },
+  'Lời gợi ý giúp AI nhận dạng đúng góc máy hoặc triều đại lịch sử.': {
+    vi: 'Lời gợi ý giúp AI nhận dạng đúng góc máy hoặc triều đại lịch sử.',
+    en: 'Prompt hint to help AI correctly recognize angle or historical dynasty.',
+    fr: 'Indication pour aider l\'IA à identifier l\'angle ou la dynastie.',
+    ja: 'AIが画角や歴史的王朝を正確に認識するのを助けるヒント。',
+    ko: 'AI가 촬영 각도나 역사적 왕조를 정확하게 인식하도록 돕는 힌트.',
+    zh: '提示词可帮助AI准确识别拍摄视角或历史朝代。'
+  },
+  'Mô tả / Bối cảnh văn hóa': {
+    vi: 'Mô tả / Bối cảnh văn hóa',
+    en: 'Description / Cultural Context',
+    fr: 'Description / Contexte Culturel',
+    ja: '説明・文化的背景',
+    ko: '설명 / 문화적 맥락',
+    zh: '描述/文化背景'
+  },
+  'Đường dẫn ảnh (URL)': {
+    vi: 'Đường dẫn ảnh (URL)',
+    en: 'Image URL',
+    fr: 'URL de l\'image',
+    ja: '画像URL',
+    ko: '이미지 URL',
+    zh: '图片链接 (URL)'
+  },
+  'Chọn từ Kho Ảnh Di Sản': {
+    vi: 'Chọn từ Kho Ảnh Di Sản',
+    en: 'Choose from Heritage Photo Archive',
+    fr: 'Choisir dans la Banque d\'Images du Patrimoine',
+    ja: '遺産フォトアーカイブから選択',
+    ko: '문화유산 사진 아카이브에서 선택',
+    zh: '从遗产图库中选择'
+  },
+  'Tải ảnh tệp': {
+    vi: 'Tải ảnh tệp',
+    en: 'Upload Photo',
+    fr: 'Télécharger un Fichier',
+    ja: '写真をアップロード',
+    ko: '사진 파일 업로드',
+    zh: '上传图片文件'
+  },
+  'Chưa có ảnh xem trước': {
+    vi: 'Chưa có ảnh xem trước',
+    en: 'No preview image yet',
+    fr: 'Aucun aperçu disponible',
+    ja: 'プレビュー画像がありません',
+    ko: '미리보기 이미지가 없습니다',
+    zh: '暂无预览图片'
+  },
+  'Lưu Thẻ Này': {
+    vi: 'Lưu Thẻ Này',
+    en: 'Save This Card',
+    fr: 'Enregistrer cette Carte',
+    ja: 'このカードを保存',
+    ko: '이 카드 저장',
+    zh: '保存此卡片'
+  },
+  'Cấu hình Tiêu đề & Lời dẫn Banner': {
+    vi: 'Cấu hình Tiêu đề & Lời dẫn Banner',
+    en: 'Banner Title & Introduction Configuration',
+    fr: 'Configuration du Titre & de la Bannière',
+    ja: 'バナータイトルと紹介文の設定',
+    ko: '배너 제목 및 소개글 설정',
+    zh: '横幅标题与导语配置'
+  },
+  'Nội dung hiển thị ở phần giới thiệu của Mô-đun Nhận Diện Di Sản': {
+    vi: 'Nội dung hiển thị ở phần giới thiệu của Mô-đun Nhận Diện Di Sản',
+    en: 'Content displayed in the introduction of the Heritage Recognition Module',
+    fr: 'Contenu affiché dans l\'introduction du module de reconnaissance du patrimoine',
+    ja: '遺産認識モジュールの導入部に表示されるコンテンツ',
+    ko: '문화유산 인식 모듈의 소개 섹션에 표시되는 콘텐츠',
+    zh: '在文化遗产识别模块导语部分显示的内容'
+  },
+  'Huy hiệu / Badge nổi bật': {
+    vi: 'Huy hiệu / Badge nổi bật',
+    en: 'Featured Badge',
+    fr: 'Badge en Vedette',
+    ja: '注目バッジ',
+    ko: '주요 배지',
+    zh: '特色徽章'
+  },
+  'Tiêu đề chính (H2 Heading)': {
+    vi: 'Tiêu đề chính (H2 Heading)',
+    en: 'Main Title (H2 Heading)',
+    fr: 'Titre Principal (En-tête H2)',
+    ja: 'メインタイトル (H2見出し)',
+    ko: '기본 제목 (H2 헤딩)',
+    zh: '主标题 (H2 标题)'
+  },
+  'Mô tả / Hướng dẫn thao tác': {
+    vi: 'Mô tả / Hướng dẫn thao tác',
+    en: 'Description / Instructions',
+    fr: 'Description / Instructions',
+    ja: '説明・操作ガイド',
+    ko: '설명 / 조작 안내',
+    zh: '描述/操作说明'
+  },
+  'Tiêu đề danh sách mẫu thử nghiệm': {
+    vi: 'Tiêu đề danh sách mẫu thử nghiệm',
+    en: 'Test Sample List Title',
+    fr: 'Titre de la Liste d\'Échantillons',
+    ja: 'テストサンプルリストのタイトル',
+    ko: '테스트 샘플 목록 제목',
+    zh: '测试示例列表标题'
+  },
+  'Mô phỏng trực tiếp cách người dùng nhìn thấy phần này trên website:': {
+    vi: 'Mô phỏng trực tiếp cách người dùng nhìn thấy phần này trên website:',
+    en: 'Direct preview of how users will see this section on the website:',
+    fr: 'Aperçu direct de ce que verront les utilisateurs sur le site :',
+    ja: 'ウェブサイト上でユーザーにどのように表示されるかの直接プレビュー：',
+    ko: '웹사이트에서 사용자가 이 섹션을 보게 되는 방식 실시간 미리보기:',
+    zh: '直接预览用户在网站上看到的此部分效果：'
+  },
+  'thẻ mẫu hiển thị': {
+    vi: 'thẻ mẫu hiển thị',
+    en: 'sample cards displayed',
+    fr: 'cartes échantillons affichées',
+    ja: '表示サンプルカード',
+    ko: '표시된 샘플 카드',
+    zh: '张展示示例卡片'
+  },
+  'Cập nhật lần cuối:': {
+    vi: 'Cập nhật lần cuối:',
+    en: 'Last updated:',
+    fr: 'Dernière mise à jour :',
+    ja: '最終更新：',
+    ko: '최종 업데이트:',
+    zh: '最后更新：'
+  },
+  'Lưu Thay Đổi (Cập Nhật Toàn Web)': {
+    vi: 'Lưu Thay Đổi (Cập Nhật Toàn Web)',
+    en: 'Save Changes (Apply Site-wide)',
+    fr: 'Enregistrer les Modifications (Tout le site)',
+    ja: '変更を保存 (全サイト適用)',
+    ko: '변경사항 저장 (전체 웹 적용)',
+    zh: '保存更改 (应用于整个网站)'
+  },
+  'Đang lưu...': {
+    vi: 'Đang lưu...',
+    en: 'Saving...',
+    fr: 'Enregistrement...',
+    ja: '保存中...',
+    ko: '저장 중...',
+    zh: '正在保存...'
+  },
+  'Đã lưu thành công nội dung và danh sách ảnh mẫu!': {
+    vi: 'Đã lưu thành công nội dung và danh sách ảnh mẫu!',
+    en: 'Successfully saved content and sample photo presets!',
+    fr: 'Contenu et préréglages enregistrés avec succès !',
+    ja: 'コンテンツとサンプル写真を正常に保存しました！',
+    ko: '콘텐츠 및 샘플 사진이 성공적으로 저장되었습니다!',
+    zh: '已成功保存内容与示例图片列表！'
+  },
+  'Đã khôi phục về mẫu di sản chuẩn nguyên bản!': {
+    vi: 'Đã khôi phục về mẫu di sản chuẩn nguyên bản!',
+    en: 'Restored to original Vietnamese heritage presets!',
+    fr: 'Rétabli aux préréglages originaux du patrimoine !',
+    ja: '標準の文化遺産プリセットに復元しました！',
+    ko: '기본 표준 문화유산 프리셋으로 복원되었습니다!',
+    zh: '已恢复为越南标准文化遗产初始预设！'
+  },
+  'Ngôn ngữ biên tập:': {
+    vi: 'Ngôn ngữ biên tập:',
+    en: 'Editing Language:',
+    fr: 'Langue d\'édition :',
+    ja: '編集言語：',
+    ko: '편집 언어:',
+    zh: '编辑语言：'
+  },
+  'Xem trước bằng ngôn ngữ:': {
+    vi: 'Xem trước bằng ngôn ngữ:',
+    en: 'Preview in language:',
+    fr: 'Aperçu dans la langue :',
+    ja: '言語別プレビュー：',
+    ko: '언어별 미리보기:',
+    zh: '以指定语言预览：'
+  },
+  'Tự động điền bản dịch': {
+    vi: 'Tự động điền bản dịch',
+    en: 'Auto-fill Translation',
+    fr: 'Remplir automatiquement la traduction',
+    ja: '翻訳を自動入力',
+    ko: '번역 자동 입력',
+    zh: '自动填充翻译'
   }
 };
 
@@ -2587,15 +3340,18 @@ public setLanguage(code: string): void {
    * Translate a given key or phrase
    */
   public t(key: string, lang?: string, fallback?: string): string {
+    if (!key) return fallback || '';
     const activeLang = lang || this.currentLanguage;
+    const trimmedKey = key.trim();
+
     if (activeLang === 'vi') {
-      if (DICTIONARY[key]?.['vi']) return DICTIONARY[key]['vi'];
-      if (PHRASE_TRANSLATIONS[key]?.['vi']) return PHRASE_TRANSLATIONS[key]['vi'];
+      if (DICTIONARY[trimmedKey]?.['vi']) return DICTIONARY[trimmedKey]['vi'];
+      if (PHRASE_TRANSLATIONS[trimmedKey]?.['vi']) return PHRASE_TRANSLATIONS[trimmedKey]['vi'];
       return fallback !== undefined ? fallback : key;
     }
 
     // 1. Check DICTIONARY by key
-    const entry = DICTIONARY[key];
+    const entry = DICTIONARY[trimmedKey] || DICTIONARY[key];
     if (entry) {
       if (entry[activeLang]) return entry[activeLang];
       if (entry['en']) return entry['en'];
@@ -2603,20 +3359,36 @@ public setLanguage(code: string): void {
     }
 
     // 2. Check PHRASE_TRANSLATIONS by key/phrase
-    const phraseEntry = PHRASE_TRANSLATIONS[key];
+    const phraseEntry = PHRASE_TRANSLATIONS[trimmedKey] || PHRASE_TRANSLATIONS[key];
     if (phraseEntry) {
       if (phraseEntry[activeLang]) return phraseEntry[activeLang];
       if (phraseEntry['en']) return phraseEntry['en'];
     }
 
-    // 3. Check fallback in PHRASE_TRANSLATIONS
-    if (fallback && PHRASE_TRANSLATIONS[fallback]) {
-      const fbEntry = PHRASE_TRANSLATIONS[fallback];
-      if (fbEntry[activeLang]) return fbEntry[activeLang];
-      if (fbEntry['en']) return fbEntry['en'];
+    // 3. Strip leading emojis, symbols or punctuation if match not yet found
+    const cleanKey = trimmedKey.replace(/^[\s\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}✨⚡•:\s]+/u, '').trim();
+    if (cleanKey && cleanKey !== trimmedKey) {
+      if (DICTIONARY[cleanKey]?.[activeLang]) return DICTIONARY[cleanKey][activeLang];
+      if (PHRASE_TRANSLATIONS[cleanKey]?.[activeLang]) return PHRASE_TRANSLATIONS[cleanKey][activeLang];
+      if (PHRASE_TRANSLATIONS[cleanKey]?.['en']) return PHRASE_TRANSLATIONS[cleanKey]['en'];
     }
 
-    // 4. Return fallback or key
+    // 4. Check fallback in PHRASE_TRANSLATIONS
+    if (fallback) {
+      const fbTrimmed = fallback.trim();
+      const fbEntry = PHRASE_TRANSLATIONS[fbTrimmed] || PHRASE_TRANSLATIONS[fallback];
+      if (fbEntry) {
+        if (fbEntry[activeLang]) return fbEntry[activeLang];
+        if (fbEntry['en']) return fbEntry['en'];
+      }
+      const fbClean = fbTrimmed.replace(/^[\s\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}✨⚡•:\s]+/u, '').trim();
+      if (fbClean && fbClean !== fbTrimmed) {
+        if (PHRASE_TRANSLATIONS[fbClean]?.[activeLang]) return PHRASE_TRANSLATIONS[fbClean][activeLang];
+        if (PHRASE_TRANSLATIONS[fbClean]?.['en']) return PHRASE_TRANSLATIONS[fbClean]['en'];
+      }
+    }
+
+    // 5. Return fallback or key
     return fallback !== undefined ? fallback : key;
   }
 
@@ -2625,32 +3397,217 @@ public setLanguage(code: string): void {
    */
   public translateHeritageItem(item: any, lang?: string): any {
     const activeLang = lang || this.currentLanguage;
-    if (activeLang === 'vi' || !item) return item;
+    if (!item) return item;
+
+    // Check if there are explicit edited translations for this language
+    const customTranslation = item.translations?.[activeLang];
+    if (customTranslation) {
+      return {
+        ...item,
+        name: customTranslation.name || (activeLang === 'en' ? item.englishName : undefined) || item.name,
+        categoryLabel: customTranslation.categoryLabel || this.t(item.categoryLabel, activeLang, item.categoryLabel),
+        period: customTranslation.period || item.period,
+        dynasty: customTranslation.dynasty || item.dynasty,
+        history: customTranslation.history || item.history,
+        culturalSignificance: customTranslation.culturalSignificance || item.culturalSignificance,
+        overview: customTranslation.overview || item.overview,
+        address: customTranslation.address || item.address,
+        visitingHours: customTranslation.visitingHours || item.visitingHours,
+        ticketPrice: customTranslation.ticketPrice || item.ticketPrice,
+        interestingFacts: (customTranslation.interestingFacts && customTranslation.interestingFacts.length > 0)
+          ? customTranslation.interestingFacts
+          : item.interestingFacts
+      };
+    }
+
+    if (activeLang === 'vi') return item;
 
     const translated = { ...item };
-    if (translated.englishName) {
+    if (translated.name) {
+      translated.name = this.t(translated.name, activeLang, translated.englishName || translated.name);
+    } else if (translated.englishName && activeLang === 'en') {
       translated.name = translated.englishName;
     }
     if (translated.categoryLabel) {
       translated.categoryLabel = this.t(translated.categoryLabel, activeLang, translated.categoryLabel);
     }
+    if (translated.period) {
+      translated.period = this.t(translated.period, activeLang, translated.period);
+    }
+    if (translated.culturalSignificance) {
+      translated.culturalSignificance = this.t(translated.culturalSignificance, activeLang, translated.culturalSignificance);
+    }
     if (activeLang === 'en') {
-      if (translated.id === 'dai-noi-hue') {
+      const n = (translated.name || '').toLowerCase();
+      const id = (translated.id || '').toLowerCase();
+      if (id === 'dai-noi-hue' || n.includes('ngọ môn') || n.includes('đại nội') || n.includes('imperial city')) {
+        translated.name = "Imperial City of Hue (Ngo Mon Gate)";
+        translated.categoryLabel = "Imperial Citadels & Palaces";
         translated.history = "Construction began in 1804 under Emperor Gia Long and was completed in 1833 under Emperor Minh Mang. The Imperial Citadel served as the administrative center and royal residence for 13 Nguyen Dynasty emperors over 143 years.";
         translated.culturalSignificance = "Recognized as a UNESCO World Cultural Heritage site in 1993. It is a pinnacle of Vietnamese imperial architecture, harmoniously combining Eastern feng shui philosophy with Western Vauban military architecture.";
-        translated.conservationStatus = "Preserved and extensively restored by the Hue Monuments Conservation Center and international partners.";
-      } else if (translated.id === 'van-mieu-quoc-tu-giam') {
+        translated.period = "Nguyen Dynasty (1802 - 1945)";
+        translated.dynasty = "Nguyen Dynasty";
+        translated.interestingFacts = [
+          "Ngo Mon has 5 entrances, of which the central portal was exclusively reserved for the reigning Emperor.",
+          "Ngu Phung pavilion on top is built with ironwood and roofed with yellow and green glazed tiles.",
+          "The site witnessed the historic abdication of Emperor Bao Dai in August 1945."
+        ];
+        translated.suggestedQuestions = [
+          "What is the feng shui layout of Hue Imperial Citadel?",
+          "How was the Ngo Mon Gate constructed and preserved?"
+        ];
+      } else if (id === 'van-mieu-quoc-tu-giam' || id === 'van-mieu-hanoi' || n.includes('văn miếu') || n.includes('temple of literature')) {
+        translated.name = "Temple of Literature - Imperial Academy";
+        translated.categoryLabel = "Historical & Educational Site";
         translated.history = "Built in 1070 during the reign of Emperor Ly Thanh Tong to worship Confucius and sages. In 1076, Emperor Ly Nhan Tong established Quoc Tu Giam next to it, becoming Vietnam's first national university.";
-        translated.culturalSignificance = "Home to 82 Doctor's stelae inscribed by UNESCO as a Memory of the World documentary heritage, symbolizing the studious tradition of the Vietnamese nation.";
-        translated.conservationStatus = "Special National Monument preserved intact through centuries.";
-      } else if (translated.id === 'pho-co-hoi-an') {
-        translated.history = "An exceptionally well-preserved example of a Southeast Asian trading port dating from the 15th to the 19th century. Its buildings and its street plan reflect the influences, both indigenous and foreign.";
-        translated.culturalSignificance = "UNESCO World Cultural Heritage site recognized in 1999, famous for its lantern-lit streets, historic merchant houses, and Japanese Covered Bridge.";
-        translated.conservationStatus = "Protected under national heritage preservation laws and UNESCO guidelines.";
-      } else {
-        if (translated.history && translated.history.includes('Được')) {
-          translated.history = translated.history.replace('Được khởi công xây dựng', 'Construction began').replace('Di sản', 'Heritage').replace('Xây dựng', 'Built');
-        }
+        translated.culturalSignificance = "Home to 82 Doctor's stelae inscribed by UNESCO as a Memory of the World documentary heritage, symbolizing the studious tradition and academic devotion of the Vietnamese nation.";
+        translated.period = "Ly - Le Dynasties (1070 - 1779)";
+        translated.dynasty = "Ly - Tran - Le Dynasties";
+        translated.interestingFacts = [
+          "82 Stone Doctor's Stelae rest on the backs of stone turtles, honoring 1,304 doctoral laureates.",
+          "Khue Van Cac pavilion was built in 1805 and is the official emblem of Hanoi capital.",
+          "Students still visit before key exams to pray for academic fortune and wisdom."
+        ];
+        translated.suggestedQuestions = [
+          "Why are doctoral stelae placed upon stone turtles?",
+          "How did students graduate from Quoc Tu Giam in ancient Vietnam?"
+        ];
+      } else if (id === 'pho-co-hoi-an' || id === 'chua-cau-hoi-an' || n.includes('chùa cầu') || n.includes('covered bridge')) {
+        translated.name = "Hoi An Japanese Covered Bridge (Lai Vien Kieu)";
+        translated.categoryLabel = "Ancient Town & Wooden Architecture";
+        translated.history = "Constructed by Japanese merchant guilds in the early 17th century spanning a canal connecting Japanese and Chinese quarters. Emperor Nguyen Phuc Chu granted the plaque 'Lai Vien Kieu' in 1719.";
+        translated.culturalSignificance = "UNESCO World Cultural Heritage icon recognized in 1999, embodying maritime silk road trade diplomacy, spiritual harmony, and intricate wooden tile-roofed craftsmanship.";
+        translated.period = "17th Century (1590s - 1719)";
+        translated.dynasty = "Nguyen Lords Era";
+        translated.interestingFacts = [
+          "The bridge is guarded by pairs of carved wooden dogs and monkeys at either end.",
+          "Despite being called a pagoda (Chùa Cầu), it worships Bac De Tran Vu, deity of weather and sailors, rather than Buddha.",
+          "The bridge appears prominently on Vietnam's 20,000 VND banknote."
+        ];
+        translated.suggestedQuestions = [
+          "Why are statues of dogs and monkeys placed at both ends of Chua Cau?",
+          "What is the folklore legend of the Cu sea monster beneath Chua Cau?"
+        ];
+      } else if (id === 'gom-bat-trang' || n.includes('bát tràng') || n.includes('bat trang')) {
+        translated.name = "Bat Trang Ceramic Craft Village";
+        translated.categoryLabel = "Traditional Craft Village";
+        translated.history = "Established over 700 years ago along the Red River during the Ly - Tran transition era. Bat Trang potters supplied royal tableware, temple incense burners, and exported wares worldwide.";
+        translated.culturalSignificance = "One of Vietnam's oldest and most renowned pottery villages, celebrated for its unique crackle glaze, cobalt blue patterns, and wood-fired kiln traditions.";
+        translated.period = "14th Century - Present";
+        translated.dynasty = "Ly - Tran - Le - Nguyen";
+        translated.interestingFacts = [
+          "Crackle glaze is achieved through precise thermal expansion differences between body and glaze.",
+          "Ancient Bat Trang bricks were celebrated for exceptional hardness and acoustic resonance.",
+          "Visitors can hand-throw clay on traditional potter wheels with master artisans."
+        ];
+        translated.suggestedQuestions = [
+          "How is ancient Bat Trang crackle glaze created?",
+          "What distinguishes Bat Trang pottery from other ceramic traditions in Asia?"
+        ];
+      } else if (id === 'ao-dai-co-phuc' || n.includes('áo dài') || n.includes('cổ phục') || n.includes('costume')) {
+        translated.name = "Ao Dai & Vietnamese Traditional Costumes";
+        translated.categoryLabel = "Traditional Costumes";
+        translated.history = "Evolving from the 18th-century Ngu Than (five-panel) tunics decreed by Lord Nguyen Phuc Khoat, the Ao Dai transformed through the 20th century into Vietnam's cherished national garment.";
+        translated.culturalSignificance = "An enduring national emblem celebrating grace, humility, and philosophical harmony (symbolizing the Five Cardinal Virtues: Benevolence, Righteousness, Propriety, Wisdom, Fidelity).";
+        translated.period = "18th - 21st Century";
+        translated.dynasty = "Nguyen Lords & Nguyen Dynasty";
+        translated.interestingFacts = [
+          "Five panels represent parents, in-laws, and the wearer, bound by moral duty.",
+          "Nhat Binh collars display exquisite imperial embroideries of phoenixes and water waves.",
+          "Modern youth revival movements are restoring historic garments with meticulous research."
+        ];
+        translated.suggestedQuestions = [
+          "What is the difference between Ao Nhat Binh and Ao Ngu Than?",
+          "How did Lord Nguyen Phuc Khoat establish the regulations of the Ao Dai?"
+        ];
+      } else if (id === 'chua-thien-mu' || n.includes('thiên mụ') || n.includes('phước duyên')) {
+        translated.name = "Thien Mu Pagoda & Phuoc Duyen Tower";
+        translated.categoryLabel = "Ancient Pagodas & Buddhism";
+        translated.history = "Founded in 1601 by the first Nguyen Lord, Nguyen Hoang, following a local prophecy of a celestial lady (Thien Mu). Emperor Thieu Tri erected the iconic octagonal Phuoc Duyen tower in 1844.";
+        translated.culturalSignificance = "The unofficial symbol of Hue ancient capital, standing serenely on Ha Khe hill overlooking the gentle Perfume River, housing national bronze treasures.";
+        translated.period = "17th - 19th Century (1601 - 1844)";
+        translated.dynasty = "Nguyen Lords & Nguyen Dynasty";
+        translated.interestingFacts = [
+          "Phuoc Duyen tower rises 21 meters with 7 octagonal tiers, each dedicated to a Buddha.",
+          "The giant Great Bell (Dai Hong Chung) cast in 1710 weighs over two tons and resonates for miles.",
+          "The pagoda houses the historic car driven by Venerable Thich Quang Duc in 1963."
+        ];
+        translated.suggestedQuestions = [
+          "What is the legendary prophecy of the celestial lady at Thien Mu Pagoda?",
+          "What cultural artifacts are preserved in the garden pavilions of Thien Mu?"
+        ];
+      } else if (id === 'ao-nhat-binh' || n.includes('nhật bình') || n.includes('nhat binh')) {
+        translated.name = "Nguyen Dynasty Nhat Binh Costume";
+        translated.categoryLabel = "Historic & Traditional Costumes";
+        translated.history = "Nhat Binh was the daily ceremonial attire of royal empresses, princesses, and noblewomen of the Nguyen Dynasty, stipulated in Kham Dinh Dai Nam Hoi Dien Su Le.";
+        translated.culturalSignificance = "Characterized by its rectangular neckband featuring embroidered phoenixes, five-color clouds, and floral motifs, representing the pinnacle of ancient Vietnamese court embroidery.";
+        translated.period = "Nguyen Dynasty (1802 - 1945)";
+        translated.dynasty = "Nguyen Dynasty";
+        translated.interestingFacts = [
+          "The rectangular collar matches the character 'Nhat' (一) in Chinese characters, giving it the name Nhat Binh.",
+          "Different colors were strictly reserved for ranks: bright red for Empress, orange/purple for Princesses.",
+          "It is now passionately revived by Vietnamese youth and brides as a cultural wedding attire."
+        ];
+        translated.suggestedQuestions = [
+          "How did rank determine colors and motifs on royal Ao Nhat Binh?",
+          "What is the cultural history behind the revival of Ao Nhat Binh today?"
+        ];
+      } else if (id === 'dan-bau' || n.includes('đàn bầu') || n.includes('dan bau') || n.includes('độc huyền')) {
+        translated.name = "Vietnamese Monochord (Dan Bau)";
+        translated.categoryLabel = "Traditional Musical Instrument";
+        translated.history = "Dan Bau (Doc Huyen Cam) is a uniquely indigenous Vietnamese musical instrument, dating back centuries, originally made with a bamboo tube and a dried gourd resonator.";
+        translated.culturalSignificance = "Renowned for producing hauntingly expressive flageolet tones (harmonics) using only a single string and a flexible bamboo whammy rod, closely echoing the subtle inflections of Vietnamese speech.";
+        translated.period = "Traditional Folk Instrument (Centuries-old)";
+        translated.dynasty = "Vietnamese Folk & Court Traditions";
+        translated.interestingFacts = [
+          "It uses only one string, producing pure flageolet harmonic nodes with the fleshy palm of the right hand.",
+          "The flexible bamboo handle (can dan) allows continuous pitch bending and vibrato.",
+          "A famous folk proverb cautions: 'Dan bau ai no trot nghe - Nuoc non ngam ngot de me long nguoi'."
+        ];
+        translated.suggestedQuestions = [
+          "How can a single-string instrument produce full musical scales?",
+          "What is the legend connecting Dan Bau with motherly love in Vietnamese folklore?"
+        ];
+      } else if (id === 'tranh-dong-ho' || n.includes('đông hồ') || n.includes('dong ho')) {
+        translated.name = "Dong Ho Folk Woodblock Painting";
+        translated.categoryLabel = "Folk Craft Village";
+        translated.history = "Born in Song Ho commune, Thuan Thanh district, Bac Ninh province along the Duong River over 400 years ago, celebrating traditional Lunar New Year blessings.";
+        translated.culturalSignificance = "Printed on natural Diep paper coated with glittering scallop shell powder, using natural plant and mineral pigments: charcoal black, pagoda flower yellow, gardenia green, and red ochre.";
+        translated.period = "17th Century - Present";
+        translated.dynasty = "Post-Le to Modern Era";
+        translated.interestingFacts = [
+          "Diep paper sparkles subtly due to crushed mother-of-pearl scallop shell powder mixed with glutinous rice paste.",
+          "Each color requires a distinct carved woodblock, requiring up to 5 successive prints for a single painting.",
+          "Famous themes include 'Catching Coconuts', 'Mice Wedding', 'Honoring Ancestral Pride', and 'Glory and Wealth'."
+        ];
+        translated.suggestedQuestions = [
+          "How are natural colors extracted for Dong Ho woodblock prints?",
+          "What is the satirical social message behind the 'Mice Wedding' painting?"
+        ];
+      } else if (id === 'trong-dong' || n.includes('đông sơn') || n.includes('trống đồng') || n.includes('dong son')) {
+        translated.name = "Dong Son Bronze Drum";
+        translated.categoryLabel = "Imperial Treasure / Ancient Relic";
+        translated.history = "Created during the Bronze Age by the ancient Viet people of the Van Lang - Au Lac kingdom (Dong Son Culture), dating from around 700 BC to 100 AD.";
+        translated.culturalSignificance = "The quintessential national icon of Vietnamese civilization, demonstrating sophisticated bronze metallurgy and depicting ancient agricultural rituals, bird motifs, and boat warriors.";
+        translated.period = "700 BC - 100 AD";
+        translated.dynasty = "Hung Kings / Van Lang - Au Lac";
+        translated.interestingFacts = [
+          "The center of the tympanum features a radiant 12 to 16-ray sun surrounded by flying Lac birds.",
+          "Used in spiritual ceremonies, rain prayers, war mobilization, and chieftain burials.",
+          "Ngoc Lu and Hoang Ha drums are preserved as Vietnam's National Treasures."
+        ];
+        translated.suggestedQuestions = [
+          "What casting technique was used to forge giant bronze drums 2,500 years ago?",
+          "What do the concentric geometric and human scenes on the tympanum signify?"
+        ];
+      }
+    } else {
+      // General translation for French, Japanese, Korean, Chinese
+      if (translated.categoryLabel) {
+        translated.categoryLabel = this.t(translated.categoryLabel, activeLang, translated.categoryLabel);
+      }
+      if (translated.name) {
+        translated.name = this.t(translated.name, activeLang, translated.name);
       }
     }
     return translated;

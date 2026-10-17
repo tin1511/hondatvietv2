@@ -20,7 +20,8 @@ import {
   History,
   Lightbulb,
   MessageSquare,
-  AlertCircle
+  AlertCircle,
+  Edit3
 } from 'lucide-react';
 import { HeritageItem } from '../types';
 import { storageService } from '../services/storageService';
@@ -28,6 +29,7 @@ import { ttsService, TTSStatus } from '../services/ttsService';
 import { geolocationService, calculateDistanceKm, formatTravelEstimate } from '../services/geolocationService';
 import { getSafeHeritageImageUrl, handleImageError } from '../utils/imageUtils';
 import { languageService } from '../services/languageService';
+import { HeritageEditModal } from './HeritageEditModal';
 
 interface HeritageDetailModalProps {
   heritage: HeritageItem | null;
@@ -50,6 +52,13 @@ export const HeritageDetailModal: React.FC<HeritageDetailModalProps> = ({
   onAskAI,
   onNavigateToMap
 }) => {
+  const [currentHeritage, setCurrentHeritage] = useState<HeritageItem | null>(heritage);
+  const [isEditingHeritage, setIsEditingHeritage] = useState(false);
+
+  useEffect(() => {
+    setCurrentHeritage(heritage);
+  }, [heritage]);
+
   const [isFavorite, setIsFavorite] = useState(false);
   const [ttsStatus, setTtsStatus] = useState<TTSStatus>('idle');
   const [showHistoricImage, setShowHistoricImage] = useState(false);
@@ -57,8 +66,8 @@ export const HeritageDetailModal: React.FC<HeritageDetailModalProps> = ({
   const scrollBodyRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (heritage && isOpen) {
-      setIsFavorite(storageService.isFavorite(heritage.id));
+    if (currentHeritage && isOpen) {
+      setIsFavorite(storageService.isFavorite(currentHeritage.id));
       setShowHistoricImage(false);
       setTtsStatus('idle');
       if (scrollBodyRef.current) {
@@ -81,7 +90,7 @@ export const HeritageDetailModal: React.FC<HeritageDetailModalProps> = ({
         document.body.style.overflow = '';
       } catch {}
     };
-  }, [heritage, isOpen]);
+  }, [currentHeritage, isOpen]);
 
   // Handle ESC key to close modal
   useEffect(() => {
@@ -94,9 +103,9 @@ export const HeritageDetailModal: React.FC<HeritageDetailModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!heritage) return null;
+  if (!currentHeritage || !heritage) return null;
 
-  const displayHeritage = languageService.translateHeritageItem(heritage, language);
+  const displayHeritage = languageService.translateHeritageItem(currentHeritage, language);
 
   // Distance calculation from current user location
   const userLoc = geolocationService.getLastKnownLocation();
@@ -466,6 +475,17 @@ export const HeritageDetailModal: React.FC<HeritageDetailModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {storageService.getCurrentUser()?.role === 'admin' && (
+              <button
+                onClick={() => setIsEditingHeritage(true)}
+                className="px-3.5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 hover:text-amber-300 border border-stone-700 text-xs font-semibold flex items-center gap-1.5 transition-all shadow cursor-pointer active:scale-95"
+                title={languageService.t('Chỉnh sửa thông tin di sản (Admin)', language, 'Chỉnh sửa')}
+              >
+                <Edit3 className="w-3.5 h-3.5 text-amber-400" />
+                <span>{languageService.t('Chỉnh Sửa', language, 'Chỉnh Sửa')}</span>
+              </button>
+            )}
+
             {onNavigateToStory && (
               <button
                 onClick={() => {
@@ -496,7 +516,7 @@ export const HeritageDetailModal: React.FC<HeritageDetailModalProps> = ({
               <button
                 onClick={() => {
                   onClose();
-                  onAskAI(heritage);
+                  onAskAI(currentHeritage);
                 }}
                 className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-lg active:scale-95 cursor-pointer"
               >
@@ -509,6 +529,19 @@ export const HeritageDetailModal: React.FC<HeritageDetailModalProps> = ({
 
           </motion.div>
         </motion.div>
+      )}
+
+      {isEditingHeritage && currentHeritage && (
+        <HeritageEditModal
+          isOpen={isEditingHeritage}
+          heritage={currentHeritage}
+          language={language}
+          onClose={() => setIsEditingHeritage(false)}
+          onSaveSuccess={(savedItem) => {
+            setIsEditingHeritage(false);
+            setCurrentHeritage(savedItem);
+          }}
+        />
       )}
     </AnimatePresence>
   );

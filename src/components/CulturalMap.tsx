@@ -31,7 +31,8 @@ import {
   PanelRight,
   Minimize2,
   Maximize2,
-  Move
+  Move,
+  Edit3
 } from 'lucide-react';
 import { HeritageItem, UserProfile, UserLocation } from '../types';
 import { storageService } from '../services/storageService';
@@ -39,6 +40,7 @@ import { handleImageError, getSafeHeritageImageUrl } from '../utils/imageUtils';
 import { geolocationService, calculateDistanceKm } from '../services/geolocationService';
 import { VIETNAM_34_ADMINISTRATIVE_UNITS, getCurrentAdministrativeUnitByName } from '../data/administrativeUnits';
 import { languageService } from '../services/languageService';
+import { HeritageEditModal } from './HeritageEditModal';
 
 interface CulturalMapProps {
   currentUser?: UserProfile;
@@ -53,6 +55,8 @@ interface ProvinceProperties {
   vietnameseName?: string;
   name?: string;
   NAME_1?: string;
+  TinhThanh?: string;
+  tinh_thanh?: string;
   Ten_Tinh?: string;
   TEN_TINH?: string;
   TenTinh?: string;
@@ -69,7 +73,11 @@ interface ProvinceProperties {
   [key: string]: unknown;
 }
 
-const CURRENT_BOUNDARIES_URL = 'https://raw.githubusercontent.com/nguyenduy1133/Free-GIS-Data/main/Vietnam%20Administrative%20Divisions%20(Post-2025)%20-%20%C4%90%C6%A1n%20v%E1%BB%8B%20h%C3%A0nh%20ch%C3%ADnh%20Vi%E1%BB%87t%20Nam%20(T%E1%BB%AB%202025)/Provinces.geojson';
+// Local pre-packaged GeoJSON asset containing all 34 post-2025 units (fast, offline-ready)
+const LOCAL_BOUNDARIES_URL = '/data/vietnam-provinces.geojson';
+// Remote fallback GIS source
+const REMOTE_BOUNDARIES_URL = 'https://raw.githubusercontent.com/nguyenduy1133/Free-GIS-Data/main/Vietnam%20Administrative%20Divisions%20(Post-2025)%20-%20%C4%90%C6%A1n%20v%E1%BB%8B%20h%C3%A0nh%20ch%C3%ADnh%20Vi%E1%BB%87t%20Nam%20(T%E1%BB%AB%202025)/Provinces.geojson';
+const CURRENT_BOUNDARIES_URL = REMOTE_BOUNDARIES_URL;
 
 const CURRENT_PROVINCE_ALIASES: Record<string, string[]> = {
   'Tuyên Quang': ['Tuyên Quang', 'Hà Giang'],
@@ -101,21 +109,97 @@ const CURRENT_PROVINCE_ALIASES: Record<string, string[]> = {
 const normalizeProvinceName = (value: unknown): string =>
   String(value ?? '')
     .trim()
-    .replace(/^(tỉnh|thành phố|province|city)\s+/i, '')
+    .replace(/^(tỉnh|thành phố|tp\.|province|city)\s+/i, '')
     .toLocaleLowerCase('vi');
 
 const getGeoJSONProvinceName = (properties: ProvinceProperties): string => {
-  const raw = properties.vietnameseName || properties.Name || properties.Ten_Tinh || properties.TEN_TINH ||
+  const raw = properties.TinhThanh || properties.tinh_thanh || properties.vietnameseName || 
+    properties.Name || properties.name || properties.Ten_Tinh || properties.TEN_TINH ||
     properties.TenTinh || properties.tenTinh || properties.ten_tinh || properties.province_name ||
-    properties.PROV_NAME || properties.name_vi || properties.province || properties.Province || properties.name || properties.NAME_1;
+    properties.PROV_NAME || properties.name_vi || properties.province || properties.Province || 
+    properties.NAME_1;
   const name = String(raw || '').trim();
-  return name.replace(/^(tỉnh|thành phố)\s+/i, '').trim();
+  // Strip parenthetical merger notes like "(Hợp nhất Đà Nẵng & Quảng Nam)"
+  const cleanName = name.replace(/\([^)]*\)/g, '').trim();
+  return cleanName.replace(/^(tỉnh|thành phố|tp\.)\s+/i, '').trim();
+};
+
+const getCategoryEmoji = (category?: string): string => {
+  switch (category) {
+    case 'palace':
+    case 'citadel':
+      return '🏰';
+    case 'temple':
+      return '⛩️';
+    case 'craft_village':
+    case 'ancient_house':
+      return '🏺';
+    case 'scenic_landscape':
+    case 'ecotourism':
+    case 'island_beach':
+      return '🏞️';
+    case 'culinary':
+      return '🍜';
+    case 'costume':
+      return '👘';
+    case 'instrument':
+    case 'folk_art':
+      return '🎶';
+    case 'museum':
+    case 'artifact':
+      return '🪷';
+    default:
+      return '🏛️';
+  }
+};
+
+interface PositionedHeritage extends HeritageItem {
+  displayLat: number;
+  displayLng: number;
+  isOffset?: boolean;
+}
+
+// Micro-offset for duplicate or very close coordinates (spiderfy)
+const computePositionedHeritages = (items: HeritageItem[]): PositionedHeritage[] => {
+  const grid: Record<string, HeritageItem[]> = {};
+  items.forEach(item => {
+    if (!item.lat || !item.lng) return;
+    const key = `${Math.round(item.lat * 250)}_${Math.round(item.lng * 250)}`;
+    if (!grid[key]) grid[key] = [];
+    grid[key].push(item);
+  });
+
+  const result: PositionedHeritage[] = [];
+  Object.values(grid).forEach(group => {
+    if (group.length === 1) {
+      result.push({
+        ...group[0],
+        displayLat: group[0].lat,
+        displayLng: group[0].lng,
+        isOffset: false
+      });
+    } else {
+      const radius = 0.0035;
+      group.forEach((item, index) => {
+        const angle = (index * 2 * Math.PI) / group.length - Math.PI / 2;
+        result.push({
+          ...item,
+          displayLat: item.lat + radius * Math.cos(angle),
+          displayLng: item.lng + (radius * 1.15) * Math.sin(angle),
+          isOffset: true
+        });
+      });
+    }
+  });
+
+  return result;
 };
 
 const provinceNameMatches = (heritageProvince: string, selectedProvince: string): boolean => {
   const heritage = normalizeProvinceName(heritageProvince);
   const requested = normalizeProvinceName(selectedProvince);
   if (!heritage || !requested) return false;
+  if (heritage === requested) return true;
   const selected = Object.keys(CURRENT_PROVINCE_ALIASES).find(name => normalizeProvinceName(name) === requested) || selectedProvince;
   const aliases = CURRENT_PROVINCE_ALIASES[selected] || [selected];
   return aliases.some(alias => {
@@ -250,6 +334,7 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
   const [loadingGeo, setLoadingGeo] = useState<boolean>(true);
   const [geoLoadError, setGeoLoadError] = useState<string | null>(null);
   const [geoRetry, setGeoRetry] = useState<number>(0);
+  const [currentZoom, setCurrentZoom] = useState<number>(6);
 
   // BASE MODE: 'vietnam_only' (Pure Vietnam vector map, no foreign territory) vs external tiles
   const [baseMode, setBaseMode] = useState<MapBaseMode>('vietnam_only');
@@ -267,6 +352,7 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
   const [selectedProvinceName, setSelectedProvinceName] = useState<string | null>(null);
   const [hoveredProvinceName, setHoveredProvinceName] = useState<string | null>(null);
   const [activeHeritage, setActiveHeritage] = useState<HeritageItem | null>(null);
+  const [editingHeritage, setEditingHeritage] = useState<HeritageItem | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedRegion, setSelectedRegion] = useState<'all' | 'north' | 'central' | 'south'>('all');
@@ -304,7 +390,7 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
     return () => clearTimeout(timer);
   }, [sidePosition]);
 
-  // 1. Load current 34-unit boundaries with timeout, validation, and retry support.
+  // 1. Load current 34-unit boundaries with local-first priority, remote fallback, validation, and retry support.
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
@@ -313,22 +399,73 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
       setLoadingGeo(true);
       setGeoLoadError(null);
       try {
-        const res = await fetch(CURRENT_BOUNDARIES_URL, { signal: controller.signal, headers: { Accept: 'application/geo+json, application/json' } });
-        if (!res.ok) throw new Error('Không tải được ranh giới hành chính (HTTP ' + res.status + ').');
-        const data = await res.json() as GeoJSON.FeatureCollection;
-        if (data?.type !== 'FeatureCollection' || !Array.isArray(data.features) || data.features.length !== 34) {
-          throw new Error('Dữ liệu ranh giới không đúng phiên bản 34 tỉnh/thành.');
+        let data: GeoJSON.FeatureCollection | null = null;
+        let lastErrorMsg = '';
+
+        // Priority 1: Fast & verified local pre-packaged GeoJSON asset
+        try {
+          const localRes = await fetch(LOCAL_BOUNDARIES_URL, {
+            signal: controller.signal,
+            headers: { Accept: 'application/geo+json, application/json' }
+          });
+          if (localRes.ok) {
+            const parsed = await localRes.json() as GeoJSON.FeatureCollection;
+            if (parsed?.type === 'FeatureCollection' && Array.isArray(parsed.features) && parsed.features.length > 0) {
+              data = parsed;
+            }
+          }
+        } catch (localErr: any) {
+          console.warn('Local GeoJSON load failed, trying remote GIS source:', localErr);
+          lastErrorMsg = localErr?.message || '';
         }
-        const namedFeatures = data.features.filter(feature => feature?.type === 'Feature' && feature.geometry && getGeoJSONProvinceName((feature.properties || {}) as ProvinceProperties).length > 0);
-        if (namedFeatures.length !== 34) throw new Error('Dữ liệu bản đồ thiếu tên hoặc hình học của một số tỉnh/thành.');
-        if (isMounted) { setGeoData(data); setGeoLoadError(null); }
+
+        // Priority 2: Remote GIS boundary source if local failed
+        if (!data) {
+          try {
+            const remoteRes = await fetch(REMOTE_BOUNDARIES_URL, {
+              signal: controller.signal,
+              headers: { Accept: 'application/geo+json, application/json' }
+            });
+            if (remoteRes.ok) {
+              const parsed = await remoteRes.json() as GeoJSON.FeatureCollection;
+              if (parsed?.type === 'FeatureCollection' && Array.isArray(parsed.features) && parsed.features.length > 0) {
+                data = parsed;
+              }
+            } else {
+              lastErrorMsg = `Không tải được ranh giới hành chính (HTTP ${remoteRes.status})`;
+            }
+          } catch (remoteErr: any) {
+            console.warn('Remote GeoJSON load failed:', remoteErr);
+            lastErrorMsg = remoteErr?.message || '';
+          }
+        }
+
+        if (!data || data.type !== 'FeatureCollection' || !Array.isArray(data.features) || data.features.length === 0) {
+          throw new Error(lastErrorMsg || 'Không tìm thấy dữ liệu ranh giới 34 tỉnh/thành.');
+        }
+
+        const namedFeatures = data.features.filter(feature => 
+          feature?.type === 'Feature' && 
+          feature.geometry && 
+          (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') &&
+          getGeoJSONProvinceName((feature.properties || {}) as ProvinceProperties).length > 0
+        );
+
+        if (namedFeatures.length === 0) {
+          throw new Error('Dữ liệu bản đồ thiếu tên hoặc hình học hợp lệ của tỉnh/thành.');
+        }
+
+        if (isMounted) {
+          setGeoData(data);
+          setGeoLoadError(null);
+        }
       } catch (err) {
         if (!isMounted) return;
         const message = err instanceof Error && err.name === 'AbortError'
           ? 'Tải bản đồ quá thời gian chờ. Hãy kiểm tra kết nối rồi thử lại.'
           : err instanceof Error ? err.message : 'Không thể tải dữ liệu bản đồ.';
         setGeoLoadError(message);
-        console.warn('Current 34-province GeoJSON load error:', err);
+        console.warn('Vietnam 34-province GeoJSON load error:', err);
       } finally {
         window.clearTimeout(timeoutId);
         if (isMounted) setLoadingGeo(false);
@@ -346,6 +483,7 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
       window.removeEventListener('heritage-data-updated', handleDataUpdated);
     };
   }, [geoRetry]);
+
   // 2. Initialize Leaflet Map
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
@@ -363,6 +501,11 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
     });
 
     mapInstanceRef.current = map;
+
+    // Track zoom level changes for Level of Detail (LOD) & label collision management
+    map.on('zoomend', () => {
+      setCurrentZoom(map.getZoom());
+    });
 
     // Layer group for sea watermarks & sovereignty markers
     const seaGroup = L.layerGroup().addTo(map);
@@ -610,6 +753,10 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
         const displayName = getGeoJSONProvinceName(props);
 
         const heritagesInProv = heritages.filter(h => provinceNameMatches(h.province, displayName));
+        const heritageCountText = heritagesInProv.length > 0
+          ? `${heritagesInProv.length} ${languageService.t('di sản văn hóa & lịch sử', language, 'di sản văn hóa & lịch sử')}`
+          : languageService.t('Nhấn để xem địa phương', language, 'Nhấn để xem địa phương');
+        const tapToFilterText = languageService.t('Chạm để phóng to & lọc danh sách', language, 'Chạm để phóng to & lọc danh sách');
 
         const tooltipContent = `
           <div class="px-3 py-2 bg-stone-950/95 text-stone-100 border border-amber-500/70 rounded-xl shadow-2xl text-xs font-serif">
@@ -618,10 +765,10 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
             </div>
             <div class="text-[11px] text-stone-300 mt-1 flex items-center gap-1.5">
               <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span>${heritagesInProv.length > 0 ? `${heritagesInProv.length} di sản văn hóa & lịch sử` : 'Nhấn để xem địa phương'}</span>
+              <span>${heritageCountText}</span>
             </div>
             <div class="text-[9px] text-amber-400/90 mt-1 italic">
-              Chạm để phóng to & lọc danh sách
+              ${tapToFilterText}
             </div>
           </div>
         `;
@@ -657,9 +804,9 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
 
     geojsonLayerRef.current = geoLayer;
 
-  }, [geoData, showProvinceBorders, colorTheme, colorOpacity, selectedProvinceName, hoveredProvinceName, heritages]);
+  }, [geoData, showProvinceBorders, colorTheme, colorOpacity, selectedProvinceName, hoveredProvinceName, heritages, language]);
 
-  // 5. Render Province Center Text Labels
+  // 5. Render Province Center Text Labels with Collision Management
   useEffect(() => {
     const labelsGroup = labelsLayerRef.current;
     if (!labelsGroup) return;
@@ -668,7 +815,14 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
 
     if (!showProvinceLabels) return;
 
-    VIETNAM_34_ADMINISTRATIVE_UNITS.forEach((unit) => {
+    // Filter units based on zoom level to eliminate label collisions in dense regions:
+    // At zoom < 7: only display 6 Centrally Governed Cities (Hà Nội, Hải Phòng, Huế, Đà Nẵng, TP.HCM, Cần Thơ)
+    // At zoom >= 7: display all 34 units
+    const unitsToShow = currentZoom < 7 
+      ? VIETNAM_34_ADMINISTRATIVE_UNITS.filter(u => u.type === 'thanh_pho_tw')
+      : VIETNAM_34_ADMINISTRATIVE_UNITS;
+
+    unitsToShow.forEach((unit) => {
       const displayName = unit.shortName;
       const center = unit.center;
 
@@ -684,10 +838,10 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
         className: 'custom-province-label',
         html: `
           <div class="pointer-events-none select-none text-center transform -translate-x-1/2 -translate-y-1/2">
-            <span class="px-1.5 py-0.5 rounded-md text-[10px] font-sans font-bold whitespace-nowrap shadow-md ${
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-sans font-bold whitespace-nowrap shadow-md ${
               isSelected
-                ? 'bg-amber-400 text-stone-950 ring-2 ring-white scale-110'
-                : 'bg-stone-950/75 text-stone-100 border border-stone-800/80 backdrop-blur-[2px]'
+                ? 'bg-amber-400 text-stone-950 ring-2 ring-white scale-110 shadow-amber-500/50'
+                : 'bg-stone-950/80 text-stone-200 border border-stone-700/80 backdrop-blur-[2px]'
             } transition-all">
               ${displayName}
             </span>
@@ -705,9 +859,9 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
       labelsGroup.addLayer(labelMarker);
     });
 
-  }, [showProvinceLabels, selectedProvinceName]);
+  }, [showProvinceLabels, selectedProvinceName, currentZoom]);
 
-  // 6. Update Heritage Pins on the Map
+  // 6. Update Heritage Pins and Province Clusters on the Map
   useEffect(() => {
     const markersGroup = markersLayerRef.current;
     if (!markersGroup) return;
@@ -739,44 +893,156 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
       );
     }
 
-    itemsToPin.forEach(item => {
-      if (!item.lat || !item.lng) return;
+    // LEVEL OF DETAIL (LOD) & CLUSTERING:
+    // At national zoom (zoom < 7.5 AND no province selected AND no search query),
+    // cluster heritages by province into clean summary badges to eliminate marker overlap.
+    const shouldClusterByProvince = currentZoom < 7.5 && !selectedProvinceName && !searchQuery.trim();
 
-      const isSelected = activeHeritage?.id === item.id;
+    if (shouldClusterByProvince) {
+      const provinceClusters: Record<string, { unit: typeof VIETNAM_34_ADMINISTRATIVE_UNITS[0]; count: number; items: HeritageItem[] }> = {};
 
-      const pinIcon = L.divIcon({
-        className: 'custom-heritage-pin',
-        html: `
-          <div class="relative flex items-center justify-center group cursor-pointer">
-            <span class="absolute w-7 h-7 rounded-full ${isSelected ? 'bg-amber-400' : 'bg-red-500'} opacity-75 animate-ping"></span>
-            <div class="relative w-7 h-7 rounded-full flex items-center justify-center shadow-2xl border-2 ${
-              isSelected 
-                ? 'bg-amber-500 border-white text-stone-950 scale-125 ring-2 ring-amber-400' 
-                : 'bg-stone-900 border-amber-400 text-amber-300 hover:scale-115 hover:border-amber-200'
-            } transition-all">
-              <span class="text-[12px]">🏛️</span>
+      itemsToPin.forEach(item => {
+        const prov = item.province;
+        const matched = VIETNAM_34_ADMINISTRATIVE_UNITS.find(u => provinceNameMatches(prov, u.shortName)) ||
+          VIETNAM_34_ADMINISTRATIVE_UNITS.find(u => provinceNameMatches(prov, u.name));
+        const key = matched ? matched.shortName : prov;
+
+        if (!provinceClusters[key]) {
+          const fallbackUnit = matched || ({
+            code: '00',
+            name: prov,
+            shortName: prov,
+            region: item.region || 'central',
+            regionName: 'Việt Nam',
+            subRegion: 'dong_bang_song_hong',
+            subRegionName: 'Khu vực',
+            type: 'tinh',
+            center: [item.lat, item.lng]
+          } as any);
+          provinceClusters[key] = { unit: fallbackUnit, count: 0, items: [] };
+        }
+        provinceClusters[key].count++;
+        provinceClusters[key].items.push(item);
+      });
+
+      // Render Province Cluster Badges
+      Object.entries(provinceClusters).forEach(([provName, cluster]) => {
+        const { unit, count, items } = cluster;
+        const center = unit.center;
+        if (!center || !center[0] || !center[1]) return;
+
+        const clusterIcon = L.divIcon({
+          className: 'custom-heritage-cluster-pin',
+          html: `
+            <div class="group relative cursor-pointer select-none">
+              <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-950/90 border-2 border-amber-400 text-amber-300 shadow-xl backdrop-blur transition-all duration-200 hover:scale-110 hover:border-amber-200 hover:bg-amber-950/95 hover:ring-2 hover:ring-amber-400/50">
+                <span class="text-xs">🏛️</span>
+                <span class="text-[11px] font-bold font-serif whitespace-nowrap text-stone-100">${provName}</span>
+                <span class="px-1.5 py-0.2 rounded-full bg-amber-500 text-stone-950 text-[10px] font-extrabold shadow">${count}</span>
+              </div>
             </div>
-            <div class="absolute bottom-full mb-1 hidden group-hover:flex px-2 py-0.5 rounded-lg bg-stone-950/95 text-amber-200 text-[10px] font-bold whitespace-nowrap border border-amber-500/50 shadow-xl backdrop-blur">
-              ${item.name}
+          `,
+          iconSize: [110, 32],
+          iconAnchor: [55, 16]
+        });
+
+        const marker = L.marker([center[0], center[1]], { icon: clusterIcon });
+        
+        const localizedHeritageWord = languageService.t('di sản', language, 'di sản');
+        const otherHeritageWord = languageService.t('di sản khác...', language, 'di sản khác...');
+        const tapToExploreWord = languageService.t('Chạm để phóng to & khám phá từng điểm', language, 'Chạm để phóng to & khám phá từng điểm');
+        const topNames = items.slice(0, 3).map(i => languageService.translateHeritageItem(i, language).name).join(', ');
+        const tooltipHtml = `
+          <div class="p-2.5 bg-stone-950/95 text-stone-100 border border-amber-500/70 rounded-xl shadow-2xl text-xs font-serif max-w-[220px]">
+            <div class="font-bold text-amber-300 flex items-center gap-1.5">
+              <span>🏛️ ${provName} (${count} ${localizedHeritageWord})</span>
+            </div>
+            <div class="text-[11px] text-stone-300 mt-1 line-clamp-2">
+              ${topNames}${count > 3 ? ` và ${count - 3} ${otherHeritageWord}` : ''}
+            </div>
+            <div class="text-[9px] text-amber-400/90 mt-1 italic">
+              ${tapToExploreWord}
             </div>
           </div>
-        `,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14]
+        `;
+        marker.bindTooltip(tooltipHtml, { sticky: true, direction: 'top', className: 'hdv-custom-tooltip' });
+
+        marker.on('click', () => {
+          handleSelectProvince(provName);
+        });
+
+        markersGroup.addLayer(marker);
       });
 
-      const marker = L.marker([item.lat, item.lng], { icon: pinIcon });
-      marker.on('click', () => {
-        setActiveHeritage(item);
-        if (onSelectHeritage) {
-          onSelectHeritage(item);
-        }
+    } else {
+      // Zoom >= 7.5 OR Province Selected: Render Individual Heritage Pins with Spiderfy
+      const positioned = computePositionedHeritages(itemsToPin);
+
+      positioned.forEach(rawItem => {
+        const item = languageService.translateHeritageItem(rawItem, language);
+        const isSelected = activeHeritage?.id === item.id;
+        const emoji = getCategoryEmoji(item.category);
+
+        const pinIcon = L.divIcon({
+          className: 'custom-heritage-pin',
+          html: `
+            <div class="relative flex items-center justify-center group cursor-pointer">
+              ${isSelected ? '<span class="absolute w-8 h-8 rounded-full bg-amber-400 opacity-75 animate-ping"></span>' : ''}
+              <div class="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-2xl border-2 ${
+                isSelected 
+                  ? 'bg-amber-500 border-white text-stone-950 scale-125 ring-2 ring-amber-400 z-50' 
+                  : 'bg-stone-900 border-amber-400 text-amber-300 hover:scale-120 hover:border-amber-200 z-10'
+              } transition-all">
+                <span class="text-[12px] sm:text-[13px]">${emoji}</span>
+              </div>
+              ${isSelected ? `
+                <div class="absolute bottom-full mb-1 flex px-2 py-0.5 rounded-lg bg-amber-500 text-stone-950 text-[10px] font-bold whitespace-nowrap shadow-xl border border-white z-50">
+                  ${item.name}
+                </div>
+              ` : `
+                <div class="absolute bottom-full mb-1 hidden group-hover:flex px-2 py-0.5 rounded-lg bg-stone-950/95 text-amber-200 text-[10px] font-bold whitespace-nowrap border border-amber-500/50 shadow-xl backdrop-blur z-40">
+                  ${item.name}
+                </div>
+              `}
+            </div>
+          `,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        });
+
+        const marker = L.marker([rawItem.displayLat, rawItem.displayLng], { 
+          icon: pinIcon,
+          zIndexOffset: isSelected ? 1000 : 0
+        });
+
+        const tooltipHtml = `
+          <div class="p-2.5 max-w-[220px] bg-stone-950/95 text-stone-100 border border-amber-500/70 rounded-xl shadow-2xl text-xs font-serif">
+            <div class="font-bold text-amber-300 text-xs mb-1 line-clamp-1">${item.name}</div>
+            <div class="text-[10px] text-stone-400 flex items-center gap-1 mb-1">
+              <span>📍 ${item.province}</span>
+              <span>•</span>
+              <span class="text-amber-400/90">${item.categoryLabel}</span>
+            </div>
+            <p class="text-[10px] text-stone-300 line-clamp-2">${item.culturalSignificance}</p>
+          </div>
+        `;
+        marker.bindTooltip(tooltipHtml, { sticky: true, direction: 'top', className: 'hdv-custom-tooltip' });
+
+        marker.on('click', () => {
+          setActiveHeritage(rawItem);
+          if (onSelectHeritage) {
+            onSelectHeritage(rawItem);
+          }
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.setView([rawItem.lat, rawItem.lng], Math.max(mapInstanceRef.current.getZoom(), 11), { animate: true });
+          }
+        });
+
+        markersGroup.addLayer(marker);
       });
+    }
 
-      markersGroup.addLayer(marker);
-    });
-
-  }, [heritages, selectedProvinceName, selectedCategory, selectedRegion, searchQuery, activeHeritage]);
+  }, [heritages, selectedProvinceName, selectedCategory, selectedRegion, searchQuery, activeHeritage, currentZoom, language]);
 
   // Handle province selection
   const handleSelectProvince = (name: string, bounds?: L.LatLngBounds) => {
@@ -792,14 +1058,18 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
           duration: 1
         });
       } else {
-        const matched = geoData?.features.find((f: any) => 
-          f.properties?.vietnameseName?.toLowerCase() === name.toLowerCase() ||
-          f.properties?.Name?.toLowerCase() === name.toLowerCase()
-        );
+        const normName = normalizeProvinceName(name);
+        const matched = geoData?.features.find((f: any) => {
+          if (!f.properties) return false;
+          const pName = normalizeProvinceName(getGeoJSONProvinceName(f.properties as ProvinceProperties));
+          return pName === normName || pName.includes(normName) || normName.includes(pName);
+        });
+
         if (matched?.properties && (matched.properties as any).center) {
           map.setView((matched.properties as any).center, 9, { animate: true });
         } else {
-          const adminUnit = getCurrentAdministrativeUnitByName(name);
+          const adminUnit = getCurrentAdministrativeUnitByName(name) ||
+            VIETNAM_34_ADMINISTRATIVE_UNITS.find(u => provinceNameMatches(u.shortName, name));
           if (adminUnit?.center) {
             map.setView(adminUnit.center, 9, { animate: true });
           }
@@ -1351,23 +1621,24 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
                     )}
                   </div>
                 ) : (
-                  heritagesInView.map(item => {
+                  heritagesInView.map(rawItem => {
+                    const item = languageService.translateHeritageItem(rawItem, language);
                     const isSelected = activeHeritage?.id === item.id;
-                    const distance = userLocation ? calculateDistanceKm(userLocation.lat, userLocation.lng, item.lat, item.lng) : null;
+                    const distance = userLocation ? calculateDistanceKm(userLocation.lat, userLocation.lng, rawItem.lat, rawItem.lng) : null;
 
                     return (
                       <div
-                        key={item.id}
+                        key={rawItem.id}
                         onClick={() => {
-                          setActiveHeritage(item);
+                          setActiveHeritage(rawItem);
                           if (onSelectHeritage) {
-                            onSelectHeritage(item);
+                            onSelectHeritage(rawItem);
                           }
-                          if (mapInstanceRef.current && item.lat && item.lng) {
-                            mapInstanceRef.current.setView([item.lat, item.lng], 12, { animate: true });
+                          if (mapInstanceRef.current && rawItem.lat && rawItem.lng) {
+                            mapInstanceRef.current.setView([rawItem.lat, rawItem.lng], 12, { animate: true });
                           }
                         }}
-                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex gap-3 group ${
+                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex gap-3 group items-center ${
                           isSelected 
                             ? 'bg-amber-950/40 border-amber-500/80 shadow-md ring-1 ring-amber-500/30' 
                             : 'bg-stone-950/70 hover:bg-stone-800/80 border-stone-800/80 hover:border-amber-500/40'
@@ -1404,6 +1675,21 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
                           </p>
                         </div>
 
+                        {/* Admin direct edit button */}
+                        {currentUser?.role === 'admin' && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingHeritage(rawItem);
+                            }}
+                            className="p-2 rounded-xl bg-stone-900/90 hover:bg-amber-500/20 text-stone-400 hover:text-amber-300 border border-stone-800 transition-colors shrink-0 cursor-pointer"
+                            title={languageService.t('Chỉnh sửa thông tin di sản', language, 'Chỉnh sửa')}
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
                         <ChevronRight className="w-4 h-4 text-stone-600 group-hover:text-amber-400 self-center shrink-0" />
                       </div>
                     );
@@ -1430,12 +1716,18 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
               <div className="absolute inset-x-3 top-3 z-30 flex justify-center pointer-events-none">
                 <div className="pointer-events-auto max-w-md rounded-2xl border border-amber-400/40 bg-stone-950/95 px-4 py-3 text-center text-xs text-stone-100 shadow-2xl backdrop-blur">
                   {loadingGeo ? (
-                    <div className="flex items-center justify-center gap-2"><span className="h-4 w-4 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" /><span>Đang tải ranh giới hành chính 34 tỉnh/thành…</span></div>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+                      <span>{languageService.t('Đang tải ranh giới hành chính 34 tỉnh/thành…', language, 'Đang tải ranh giới hành chính 34 tỉnh/thành…')}</span>
+                    </div>
                   ) : (
                     <div className="space-y-2">
-                      <p className="font-semibold text-amber-200">Chưa tải được dữ liệu ranh giới bản đồ</p>
+                      <p className="font-semibold text-amber-200">{languageService.t('Chưa tải được dữ liệu ranh giới bản đồ', language, 'Chưa tải được dữ liệu ranh giới bản đồ')}</p>
                       <p className="text-stone-300">{geoLoadError}</p>
-                      <button type="button" onClick={() => setGeoRetry(value => value + 1)} className="inline-flex items-center gap-1.5 rounded-lg bg-amber-400 px-3 py-1.5 font-bold text-stone-950 hover:bg-amber-300"><RotateCcw className="h-3.5 w-3.5" />Thử tải lại</button>
+                      <button type="button" onClick={() => setGeoRetry(value => value + 1)} className="inline-flex items-center gap-1.5 rounded-lg bg-amber-400 px-3 py-1.5 font-bold text-stone-950 hover:bg-amber-300 cursor-pointer">
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        <span>{languageService.t('Thử tải lại', language, 'Thử tải lại')}</span>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -1444,23 +1736,23 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
 
             {/* Map Legend Overlay */}
             <div className="absolute bottom-4 left-4 z-20 bg-stone-950/90 backdrop-blur border border-stone-800 p-2.5 rounded-2xl text-[11px] space-y-1.5 shadow-xl hidden sm:block pointer-events-none">
-              <div className="font-bold text-amber-300 font-serif">Chú giải bản đồ Việt Nam:</div>
+              <div className="font-bold text-amber-300 font-serif">{languageService.t('Chú giải bản đồ Việt Nam:', language, 'Chú giải bản đồ Việt Nam:')}</div>
               <div className="flex items-center gap-2 text-stone-300">
                 <span className="w-3 h-0.5 bg-[#f59e0b]" />
-                <span>Ranh giới 34 tỉnh/thành (từ 2025)</span>
+                <span>{languageService.t('Ranh giới 34 tỉnh/thành (từ 2025)', language, 'Ranh giới 34 tỉnh/thành (từ 2025)')}</span>
               </div>
               <div className="flex items-center gap-2 text-stone-300">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-                <span>Điểm di sản văn hóa & danh thắng</span>
+                <span>{languageService.t('Điểm di sản văn hóa & danh thắng', language, 'Điểm di sản văn hóa & danh thắng')}</span>
               </div>
               <div className="flex items-center gap-2 text-amber-300 font-semibold">
                 <span>🇻🇳</span>
-                <span>Chủ quyền Hoàng Sa & Trường Sa</span>
+                <span>{languageService.t('Chủ quyền Hoàng Sa & Trường Sa', language, 'Chủ quyền Hoàng Sa & Trường Sa')}</span>
               </div>
               {baseMode === 'vietnam_only' && (
                 <div className="flex items-center gap-2 text-emerald-400 text-[10px]">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <span>Chế độ: Độc quyền bản đồ Việt Nam</span>
+                  <span>{languageService.t('Chế độ: Độc quyền bản đồ Việt Nam', language, 'Chế độ: Độc quyền bản đồ Việt Nam')}</span>
                 </div>
               )}
             </div>
@@ -1470,7 +1762,7 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
               <div className="absolute top-4 left-4 z-20 bg-stone-950/95 backdrop-blur border border-amber-500/60 px-3.5 py-1.5 rounded-2xl shadow-2xl flex items-center gap-2 pointer-events-none animate-fadeIn">
                 <Compass className="w-3.5 h-3.5 text-amber-400" />
                 <span className="text-xs font-serif font-bold text-amber-200">{hoveredProvinceName}</span>
-                <span className="text-[10px] text-stone-400">• Nhấn để phóng to</span>
+                <span className="text-[10px] text-stone-400">• {languageService.t('Nhấn để phóng to', language, 'Nhấn để phóng to')}</span>
               </div>
             )}
 
@@ -1508,114 +1800,145 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
       })()}
 
       {/* HERITAGE DETAIL MODAL / FALLBACK DIALOG */}
-      {!onSelectHeritage && activeHeritage && (
-        <div className="fixed inset-0 z-[9999] flex items-start justify-center p-2 sm:p-4 pt-2 sm:pt-4 bg-stone-950/90 backdrop-blur-md overflow-y-auto animate-fadeIn">
-          <div className="bg-stone-900 border-2 border-amber-500/60 rounded-3xl max-w-2xl w-full my-0 max-h-[95vh] flex flex-col shadow-2xl overflow-hidden relative">
-            
-            {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-stone-800 bg-stone-950/80 flex items-center justify-between">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold shrink-0">
-                  {activeHeritage.categoryLabel}
-                </span>
-                <h3 className="font-serif font-bold text-stone-100 text-base sm:text-lg truncate">
-                  {activeHeritage.name}
-                </h3>
-              </div>
-              <button
-                onClick={() => setActiveHeritage(null)}
-                className="p-2 rounded-xl text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors shrink-0 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar">
-              <div className="relative h-60 w-full rounded-2xl overflow-hidden bg-stone-950 border border-stone-800">
-                <img
-                  src={getSafeHeritageImageUrl(activeHeritage.imageUrl)}
-                  alt={activeHeritage.name}
-                  className="w-full h-full object-cover"
-                  onError={handleImageError}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-stone-950 border border-stone-800">
-                  <span className="text-stone-400 block mb-1">{languageService.t('Địa phương', language, 'Địa phương')}</span>
-                  <span className="font-semibold text-amber-200">{activeHeritage.province}</span>
+      {!onSelectHeritage && activeHeritage && (() => {
+        const displayActive = languageService.translateHeritageItem(activeHeritage, language);
+        return (
+          <div className="fixed inset-0 z-[9999] flex items-start justify-center p-2 sm:p-4 pt-2 sm:pt-4 bg-stone-950/90 backdrop-blur-md overflow-y-auto animate-fadeIn">
+            <div className="bg-stone-900 border-2 border-amber-500/60 rounded-3xl max-w-2xl w-full my-0 max-h-[95vh] flex flex-col shadow-2xl overflow-hidden relative">
+              
+              {/* Modal Header */}
+              <div className="p-4 sm:p-5 border-b border-stone-800 bg-stone-950/80 flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold shrink-0">
+                    {displayActive.categoryLabel}
+                  </span>
+                  <h3 className="font-serif font-bold text-stone-100 text-base sm:text-lg truncate">
+                    {displayActive.name}
+                  </h3>
                 </div>
-                <div className="p-3 rounded-xl bg-stone-950 border border-stone-800">
-                  <span className="text-stone-400 block mb-1">{languageService.t('Thời kỳ / Triều đại', language, 'Thời kỳ / Triều đại')}</span>
-                  <span className="font-semibold text-amber-200">{activeHeritage.period || languageService.t('Đang cập nhật', language, 'Đang cập nhật')}</span>
+                <button
+                  onClick={() => setActiveHeritage(null)}
+                  className="p-2 rounded-xl text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors shrink-0 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar">
+                <div className="relative h-60 w-full rounded-2xl overflow-hidden bg-stone-950 border border-stone-800">
+                  <img
+                    src={getSafeHeritageImageUrl(activeHeritage.imageUrl)}
+                    alt={displayActive.name}
+                    className="w-full h-full object-cover"
+                    onError={handleImageError}
+                  />
                 </div>
-              </div>
 
-              <div className="space-y-1.5">
-                <h4 className="font-serif font-bold text-amber-300 text-sm">{languageService.t('Ý nghĩa Lịch sử & Văn hóa', language, 'Ý nghĩa Lịch sử & Văn hóa')}</h4>
-                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed font-light">
-                  {activeHeritage.culturalSignificance}
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <h4 className="font-serif font-bold text-amber-300 text-sm">{languageService.t('Lịch sử Hình thành', language, 'Lịch sử Hình thành')}</h4>
-                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed font-light">
-                  {activeHeritage.history || languageService.t('Đang cập nhật thêm tư liệu lịch sử từ chuyên gia.', language, 'Đang cập nhật thêm tư liệu lịch sử từ chuyên gia.')}
-                </p>
-              </div>
-
-              {/* Practical Info: Hours & Tickets */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-stone-950 border border-stone-800 text-xs">
-                  <Clock className="w-4 h-4 text-amber-400 shrink-0" />
-                  <div>
-                    <span className="text-stone-400 block">{languageService.t('Giờ mở cửa', language, 'Giờ mở cửa')}</span>
-                    <span className="text-stone-200 font-medium">{activeHeritage.visitingHours || languageService.t('Chưa có dữ liệu xác nhận', language, 'Chưa có dữ liệu xác nhận')}</span>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="p-3 rounded-xl bg-stone-950 border border-stone-800">
+                    <span className="text-stone-400 block mb-1">{languageService.t('Địa phương', language, 'Địa phương')}</span>
+                    <span className="font-semibold text-amber-200">{activeHeritage.province}</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-stone-950 border border-stone-800">
+                    <span className="text-stone-400 block mb-1">{languageService.t('Thời kỳ / Triều đại', language, 'Thời kỳ / Triều đại')}</span>
+                    <span className="font-semibold text-amber-200">{displayActive.period || languageService.t('Đang cập nhật', language, 'Đang cập nhật')}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-stone-950 border border-stone-800 text-xs">
-                  <Ticket className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <div>
-                    <span className="text-stone-400 block">{languageService.t('Giá vé tham khảo', language, 'Giá vé tham khảo')}</span>
-                    <span className="text-stone-200 font-medium">{activeHeritage.ticketPrice || languageService.t('Chưa có dữ liệu xác nhận', language, 'Chưa có dữ liệu xác nhận')}</span>
+                <div className="space-y-1.5">
+                  <h4 className="font-serif font-bold text-amber-300 text-sm">{languageService.t('Ý nghĩa Lịch sử & Văn hóa', language, 'Ý nghĩa Lịch sử & Văn hóa')}</h4>
+                  <p className="text-xs sm:text-sm text-stone-300 leading-relaxed font-light">
+                    {displayActive.culturalSignificance}
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <h4 className="font-serif font-bold text-amber-300 text-sm">{languageService.t('Lịch sử Hình thành', language, 'Lịch sử Hình thành')}</h4>
+                  <p className="text-xs sm:text-sm text-stone-300 leading-relaxed font-light">
+                    {displayActive.history || languageService.t('Đang cập nhật thêm tư liệu lịch sử từ chuyên gia.', language, 'Đang cập nhật thêm tư liệu lịch sử từ chuyên gia.')}
+                  </p>
+                </div>
+
+                {/* Practical Info: Hours & Tickets */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-stone-950 border border-stone-800 text-xs">
+                    <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                    <div>
+                      <span className="text-stone-400 block">{languageService.t('Giờ mở cửa', language, 'Giờ mở cửa')}</span>
+                      <span className="text-stone-200 font-medium">{displayActive.visitingHours || languageService.t('Chưa có dữ liệu xác nhận', language, 'Chưa có dữ liệu xác nhận')}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-stone-950 border border-stone-800 text-xs">
+                    <Ticket className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div>
+                      <span className="text-stone-400 block">{languageService.t('Giá vé tham khảo', language, 'Giá vé tham khảo')}</span>
+                      <span className="text-stone-200 font-medium">{displayActive.ticketPrice || languageService.t('Chưa có dữ liệu xác nhận', language, 'Chưa có dữ liệu xác nhận')}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-stone-800 bg-stone-950/80 flex items-center justify-between gap-3">
-              <button
-                onClick={() => {
-                  const heritageName = activeHeritage.name;
-                  const history = activeHeritage.history;
-                  const period = activeHeritage.period;
-                  setActiveHeritage(null);
-                  onNavigateToStory(heritageName, history, period);
-                }}
-                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition-all active:scale-95 cursor-pointer"
-              >
-                <Volume2 className="w-4 h-4" />
-                <span>{languageService.t('nav.storyteller', language, 'Nghe AI Kể Chuyện')}</span>
-              </button>
+              {/* Modal Footer */}
+              <div className="p-4 border-t border-stone-800 bg-stone-950/80 flex flex-wrap items-center justify-between gap-3">
+                <button
+                  onClick={() => {
+                    const heritageName = displayActive.name;
+                    const history = displayActive.history;
+                    const period = displayActive.period;
+                    setActiveHeritage(null);
+                    onNavigateToStory(heritageName, history, period);
+                  }}
+                  className="flex-1 min-w-[120px] py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition-all active:scale-95 cursor-pointer"
+                >
+                  <Volume2 className="w-4 h-4" />
+                  <span>{languageService.t('nav.storyteller', language, 'Nghe AI Kể Chuyện')}</span>
+                </button>
 
-              <button
-                onClick={() => {
-                  const heritageId = activeHeritage.id;
-                  setActiveHeritage(null);
-                  onNavigateToFood(heritageId);
-                }}
-                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow transition-all active:scale-95 cursor-pointer"
-              >
-                <Utensils className="w-4 h-4" />
-                <span>{languageService.t('btn.food', language, 'Ẩm Thực Gần Đây')}</span>
-              </button>
+                <button
+                  onClick={() => {
+                    const heritageId = activeHeritage.id;
+                    setActiveHeritage(null);
+                    onNavigateToFood(heritageId);
+                  }}
+                  className="flex-1 min-w-[120px] py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow transition-all active:scale-95 cursor-pointer"
+                >
+                  <Utensils className="w-4 h-4" />
+                  <span>{languageService.t('btn.food', language, 'Ẩm Thực Gần Đây')}</span>
+                </button>
+
+                {currentUser?.role === 'admin' && (
+                  <button
+                    onClick={() => {
+                      setEditingHeritage(activeHeritage);
+                    }}
+                    className="py-2.5 px-3 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center justify-center gap-1.5 shadow transition-all active:scale-95 cursor-pointer"
+                    title={languageService.t('Chỉnh sửa thông tin di sản', language, 'Chỉnh sửa')}
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>{languageService.t('Chỉnh Sửa', language, 'Chỉnh Sửa')}</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        );
+      })()}
+
+      {/* Heritage Edit Modal for In-Map Editing */}
+      {editingHeritage && (
+        <HeritageEditModal
+          isOpen={!!editingHeritage}
+          heritage={editingHeritage}
+          language={language}
+          onClose={() => setEditingHeritage(null)}
+          onSaveSuccess={(savedItem) => {
+            setEditingHeritage(null);
+            setActiveHeritage(savedItem);
+            setHeritages(storageService.getHeritages());
+          }}
+        />
       )}
 
     </div>

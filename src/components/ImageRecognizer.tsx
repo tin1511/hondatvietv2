@@ -45,14 +45,21 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
   onAskChatbot,
   language = 'vi'
 }) => {
+  const [currentLang, setCurrentLang] = useState<string>(() => language || languageService.getCurrentLanguage());
+
   useEffect(() => {
-    if (language) {
-      languageService.translateDOM(language);
-      if (result) {
-        setResult(prev => prev ? languageService.translateHeritageItem(prev, language) : null);
-      }
-    }
+    setCurrentLang(language || languageService.getCurrentLanguage());
   }, [language]);
+
+  useEffect(() => {
+    const handleLangChanged = (e: any) => {
+      if (e.detail?.language) {
+        setCurrentLang(e.detail.language);
+      }
+    };
+    window.addEventListener('hdv_language_changed', handleLangChanged);
+    return () => window.removeEventListener('hdv_language_changed', handleLangChanged);
+  }, []);
   // Dynamic Section Config & Admin State
   const [sectionConfig, setSectionConfig] = useState<RecognitionSectionConfig>(() => storageService.getRecognitionSectionConfig());
   const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
@@ -102,6 +109,15 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<RecognizeHeritageResult | null>(null);
   const [userNote, setUserNote] = useState('');
+
+  useEffect(() => {
+    if (currentLang) {
+      languageService.translateDOM(currentLang);
+      if (result) {
+        setResult(prev => prev ? languageService.translateHeritageItem(prev, currentLang) : null);
+      }
+    }
+  }, [currentLang]);
 
   // DOM Refs
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -319,13 +335,13 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
       <div className="text-center max-w-3xl mx-auto mb-8 relative">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold mb-3">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>{sectionConfig.badge}</span>
+          <span>{sectionConfig.translations?.[currentLang]?.badge || languageService.t(sectionConfig.badge, currentLang, sectionConfig.badge)}</span>
         </div>
         <h2 className="text-2xl sm:text-4xl font-serif font-bold text-stone-100">
-          {sectionConfig.title}
+          {sectionConfig.translations?.[currentLang]?.title || languageService.t(sectionConfig.title, currentLang, sectionConfig.title)}
         </h2>
         <p className="text-stone-300 text-sm sm:text-base mt-2">
-          {sectionConfig.description}
+          {sectionConfig.translations?.[currentLang]?.description || languageService.t(sectionConfig.description, currentLang, sectionConfig.description)}
         </p>
 
         {isAdmin && (
@@ -335,7 +351,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
               className="px-3.5 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5 text-amber-400" />
-              <span>Admin: Tùy chỉnh nội dung & ảnh mẫu nhận diện</span>
+              <span>{languageService.t('Admin: Tùy chỉnh nội dung & ảnh mẫu nhận diện', currentLang, 'Admin: Tùy chỉnh nội dung & ảnh mẫu nhận diện')}</span>
             </button>
           </div>
         )}
@@ -344,10 +360,10 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
           <div className="mt-4 max-w-xl mx-auto p-3 bg-amber-950/70 border border-amber-500/50 rounded-2xl text-amber-300 text-xs flex items-center justify-between gap-3 shadow-lg animate-fadeIn">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
-              <span className="font-bold">⚡ Đang ở Chế độ Nhận Diện AI Ngoại Tuyến (Offline Visual Engine)</span>
+              <span className="font-bold">{languageService.t('⚡ Đang ở Chế độ Nhận Diện AI Ngoại Tuyến (Offline Visual Engine)', currentLang, '⚡ Đang ở Chế độ Nhận Diện AI Ngoại Tuyến (Offline Visual Engine)')}</span>
             </div>
             <p className="text-[11px] text-amber-200 hidden sm:block">
-              Phân tích đặc trưng & đối chiếu kho tư liệu di sản lưu trong thiết bị
+              {languageService.t('Phân tích đặc trưng & đối chiếu kho tư liệu di sản lưu trong thiết bị', currentLang, 'Phân tích đặc trưng & đối chiếu kho tư liệu di sản lưu trong thiết bị')}
             </p>
           </div>
         )}
@@ -358,7 +374,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
         <div className="flex items-center justify-between gap-3 mb-3">
           <p className="text-xs font-semibold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>{sectionConfig.samplesLabel}</span>
+            <span>{sectionConfig.translations?.[currentLang]?.samplesLabel || languageService.t(sectionConfig.samplesLabel, currentLang, sectionConfig.samplesLabel)}</span>
           </p>
 
           {isAdmin && (
@@ -367,39 +383,46 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
               className="px-3 py-1 rounded-lg bg-stone-800/80 hover:bg-stone-700/80 border border-stone-700 text-amber-400 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Edit3 className="w-3 h-3" />
-              <span>Quản lý {sectionConfig.samples.length} ảnh mẫu</span>
+              <span>{languageService.t('Quản lý', currentLang, 'Quản lý')} {sectionConfig.samples.length} {languageService.t('ảnh mẫu', currentLang, 'ảnh mẫu')}</span>
             </button>
           )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {sectionConfig.samples.map((sample, idx) => (
-            <button
-              key={sample.id || idx}
-              onClick={() => handleSelectPreset(sample)}
-              disabled={loading}
-              className="group relative rounded-xl overflow-hidden border border-stone-800 hover:border-amber-400/60 transition-all text-left bg-stone-900 shadow-md hover:scale-105 disabled:opacity-50 cursor-pointer"
-            >
-              <div className="h-20 w-full overflow-hidden relative">
-                <img 
-                  src={sample.url} 
-                  alt={sample.title} 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=600&q=80';
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-transparent to-transparent opacity-80" />
-              </div>
-              <div className="p-2 bg-stone-900">
-                <p className="text-xs font-semibold text-stone-200 line-clamp-1 group-hover:text-amber-300">
-                  {sample.title}
-                </p>
-                <p className="text-[10px] text-stone-400 line-clamp-1">{sample.category}</p>
-              </div>
-            </button>
-          ))}
+          {sectionConfig.samples.map((sample, idx) => {
+            const localizedTitle = sample.translations?.[currentLang]?.title || languageService.t(sample.title, currentLang, sample.title);
+            const localizedCategory = sample.translations?.[currentLang]?.category || languageService.t(sample.category, currentLang, sample.category);
+
+            return (
+              <button
+                key={sample.id || idx}
+                onClick={() => handleSelectPreset(sample)}
+                disabled={loading}
+                className="group relative rounded-xl overflow-hidden border border-stone-800 hover:border-amber-400/60 transition-all text-left bg-stone-900 shadow-md hover:scale-105 disabled:opacity-50 cursor-pointer"
+              >
+                <div className="h-20 w-full overflow-hidden relative">
+                  <img 
+                    src={sample.url} 
+                    alt={localizedTitle} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=600&q=80';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-transparent to-transparent opacity-80" />
+                </div>
+                <div className="p-2 bg-stone-900">
+                  <p className="text-xs font-semibold text-stone-200 line-clamp-1 group-hover:text-amber-300">
+                    {localizedTitle}
+                  </p>
+                  <p className="text-[10px] text-stone-400 line-clamp-1">
+                    {localizedCategory}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -416,10 +439,12 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
               </div>
               <div>
                 <h3 className="font-serif font-bold text-stone-100 text-sm sm:text-base">
-                  Ống Kính AI Di Sản
+                  {languageService.t('Ống Kính AI Di Sản', currentLang, 'Ống Kính AI Di Sản')}
                 </h3>
                 <p className="text-[11px] text-stone-400">
-                  {inputMode === 'camera' ? 'Chụp ảnh trực tiếp từ thiết bị' : 'Tải ảnh từ thư viện'}
+                  {inputMode === 'camera' 
+                    ? languageService.t('Chụp ảnh trực tiếp từ thiết bị', currentLang, 'Chụp ảnh trực tiếp từ thiết bị') 
+                    : languageService.t('Tải ảnh từ thư viện', currentLang, 'Tải ảnh từ thư viện')}
                 </p>
               </div>
             </div>
@@ -440,7 +465,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                 }`}
               >
                 <Camera className="w-3.5 h-3.5" />
-                <span>Chụp trực tiếp</span>
+                <span>{languageService.t('Chụp trực tiếp', currentLang, 'Chụp trực tiếp')}</span>
               </button>
 
               <button
@@ -457,7 +482,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                 }`}
               >
                 <Upload className="w-3.5 h-3.5" />
-                <span>Tải tệp</span>
+                <span>{languageService.t('Tải tệp', currentLang, 'Tải tệp')}</span>
               </button>
             </div>
           </div>
@@ -502,7 +527,11 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                 <div className="absolute top-5 left-5 bg-stone-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-amber-500/40 text-[11px] font-semibold text-amber-300 flex items-center gap-1.5 shadow">
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
                   <span>
-                    {imageOrigin === 'camera' ? 'Ảnh vừa chụp từ Camera' : imageOrigin === 'preset' ? 'Ảnh mẫu thử nghiệm' : 'Ảnh từ thiết bị'}
+                    {imageOrigin === 'camera' 
+                      ? languageService.t('Ảnh vừa chụp từ Camera', currentLang, 'Ảnh vừa chụp từ Camera') 
+                      : imageOrigin === 'preset' 
+                      ? languageService.t('Ảnh mẫu thử nghiệm', currentLang, 'Ảnh mẫu thử nghiệm') 
+                      : languageService.t('Ảnh từ thiết bị', currentLang, 'Ảnh từ thiết bị')}
                   </span>
                 </div>
 
@@ -511,10 +540,10 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                   id="btn-retake-photo"
                   onClick={handleRetake}
                   className="absolute top-5 right-5 px-3 py-1.5 rounded-full bg-stone-900/90 hover:bg-stone-800 backdrop-blur-md border border-stone-700 text-stone-200 hover:text-amber-300 text-xs font-semibold flex items-center gap-1.5 shadow-lg transition-all cursor-pointer"
-                  title="Chụp lại ảnh khác"
+                  title={languageService.t('Chụp lại ảnh khác', currentLang, 'Chụp lại ảnh khác')}
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Chụp lại</span>
+                  <span>{languageService.t('Chụp lại', currentLang, 'Chụp lại')}</span>
                 </button>
               </div>
             ) : inputMode === 'camera' ? (
@@ -540,7 +569,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                       <div className="flex items-center gap-2 bg-stone-950/70 backdrop-blur-md px-3 py-1 rounded-full border border-stone-700 text-[11px] text-stone-200">
                         <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                         <span className="font-semibold tracking-wider">LIVE</span>
-                        <span className="text-stone-400">• Căn góc di sản</span>
+                        <span className="text-stone-400">• {languageService.t('Căn góc di sản', currentLang, 'Căn góc di sản')}</span>
                       </div>
 
                       {/* Switch Camera Button (Front / Rear) */}
@@ -548,7 +577,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                         type="button"
                         onClick={handleToggleFacingMode}
                         className="p-2 rounded-full bg-stone-950/80 hover:bg-stone-800 text-stone-200 hover:text-amber-400 border border-stone-700 backdrop-blur-md shadow-lg transition-all cursor-pointer"
-                        title="Đổi camera trước / sau"
+                        title={languageService.t('Đổi camera trước / sau', currentLang, 'Đổi camera trước / sau')}
                       >
                         <SwitchCamera className="w-4 h-4" />
                       </button>
@@ -573,7 +602,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
 
                     {/* Bottom Helper Hint */}
                     <p className="text-center text-[11px] text-amber-200/90 font-medium bg-stone-950/70 backdrop-blur-sm py-1 px-3 rounded-full mx-auto shadow border border-amber-500/20">
-                      Hướng camera vào di tích, hoa văn, hiện vật hoặc cổ phục
+                      {languageService.t('Gợi ý: Căn góc đủ sáng, chụp rõ hiện vật, hoa văn, kiến trúc để AI đạt độ chính xác cao nhất.', currentLang, languageService.t('Hướng camera vào di tích, hoa văn, hiện vật hoặc cổ phục', currentLang, 'Gợi ý: Căn góc đủ sáng, chụp rõ hiện vật, hoa văn, kiến trúc để AI đạt độ chính xác cao nhất.'))}
                     </p>
                   </div>
                 )}
@@ -587,10 +616,10 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
 
                     <div className="max-w-xs space-y-1">
                       <h4 className="text-stone-200 font-serif font-bold text-sm">
-                        Kích hoạt Máy Ảnh Chụp Trực Tiếp
+                        {languageService.t('Kích hoạt Máy Ảnh Chụp Trực Tiếp', currentLang, 'Kích hoạt Máy Ảnh Chụp Trực Tiếp')}
                       </h4>
                       <p className="text-stone-400 text-xs leading-relaxed">
-                        {cameraError || 'Cho phép quyền truy cập Camera trên trình duyệt để chụp và nhận diện di sản ngay tại chỗ.'}
+                        {cameraError || languageService.t('Cho phép quyền truy cập Camera trên trình duyệt để chụp và nhận diện di sản ngay tại chỗ.', currentLang, 'Cho phép quyền truy cập Camera trên trình duyệt để chụp và nhận diện di sản ngay tại chỗ.')}
                       </p>
                     </div>
 
@@ -601,7 +630,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                         className="flex-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs shadow transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
-                        <span>Thử lại Camera</span>
+                        <span>{languageService.t('Thử lại Camera', currentLang, 'Thử lại Camera')}</span>
                       </button>
 
                       {/* Mobile Native Camera Direct Trigger */}
@@ -609,10 +638,10 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                         type="button"
                         onClick={() => directCameraInputRef.current?.click()}
                         className="flex-1 py-2.5 px-4 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-semibold text-xs border border-stone-700 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                        title="Mở ứng dụng Máy ảnh trên điện thoại"
+                        title={languageService.t('Mở ứng dụng Máy ảnh trên điện thoại', currentLang, 'Mở ứng dụng Máy ảnh trên điện thoại')}
                       >
                         <Camera className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Mở Camera máy</span>
+                        <span>{languageService.t('Mở Camera máy', currentLang, 'Mở Camera máy')}</span>
                       </button>
                     </div>
                   </div>
@@ -628,10 +657,10 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                 <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto mb-3">
                   <Upload className="w-7 h-7" />
                 </div>
-                <p className="text-sm font-semibold text-stone-200">Bấm để chọn tệp hoặc kéo thả ảnh vào đây</p>
-                <p className="text-xs text-stone-400 mt-1">Hỗ trợ định dạng JPG, PNG, WEBP (Tối đa 10MB)</p>
+                <p className="text-sm font-semibold text-stone-200">{languageService.t('Bấm để chọn tệp hoặc kéo thả ảnh vào đây', currentLang, 'Bấm để chọn tệp hoặc kéo thả ảnh vào đây')}</p>
+                <p className="text-xs text-stone-400 mt-1">{languageService.t('Hỗ trợ định dạng JPG, PNG, WEBP (Tối đa 10MB)', currentLang, 'Hỗ trợ định dạng JPG, PNG, WEBP (Tối đa 10MB)')}</p>
                 <span className="mt-4 px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs font-semibold border border-stone-700">
-                  Duyệt ảnh từ thiết bị
+                  {languageService.t('Duyệt ảnh từ thiết bị', currentLang, 'Duyệt ảnh từ thiết bị')}
                 </span>
               </div>
             )}
@@ -648,10 +677,10 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                   type="button"
                   onClick={() => directCameraInputRef.current?.click()}
                   className="p-3 rounded-2xl bg-stone-950 border border-stone-800 hover:bg-stone-800 text-stone-300 hover:text-amber-300 text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
-                  title="Chụp bằng ứng dụng máy ảnh gốc của điện thoại"
+                  title={languageService.t('Chụp bằng ứng dụng máy ảnh gốc của điện thoại', currentLang, 'Chụp bằng ứng dụng máy ảnh gốc của điện thoại')}
                 >
                   <Camera className="w-4 h-4 text-amber-400" />
-                  <span className="hidden sm:inline">Camera máy</span>
+                  <span className="hidden sm:inline">{languageService.t('Camera máy', currentLang, 'Camera máy')}</span>
                 </button>
 
                 {/* Primary Large Shutter Button (Chụp & Nhận diện ngay) */}
@@ -664,7 +693,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                   <span className="w-6 h-6 rounded-full border-2 border-stone-950 group-hover:bg-stone-950 group-hover:text-amber-400 flex items-center justify-center transition-colors">
                     <span className="w-2.5 h-2.5 rounded-full bg-stone-950 group-hover:bg-amber-400" />
                   </span>
-                  <span>Chụp & Nhận Diện Ngay</span>
+                  <span>{languageService.t('Chụp & Nhận Diện Ngay', currentLang, 'Chụp & Nhận Diện Ngay')}</span>
                 </button>
 
                 {/* Flip camera */}
@@ -672,10 +701,10 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                   type="button"
                   onClick={handleToggleFacingMode}
                   className="p-3 rounded-2xl bg-stone-950 border border-stone-800 hover:bg-stone-800 text-stone-300 hover:text-amber-300 text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
-                  title="Đổi camera trước / sau"
+                  title={languageService.t('Đổi camera trước / sau', currentLang, 'Đổi camera trước / sau')}
                 >
                   <SwitchCamera className="w-4 h-4 text-amber-400" />
-                  <span className="hidden sm:inline">Đổi chiều</span>
+                  <span className="hidden sm:inline">{languageService.t('Đổi chiều', currentLang, 'Đổi chiều')}</span>
                 </button>
               </div>
 
@@ -687,7 +716,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                   onChange={(e) => setAutoRecognizeOnSnap(e.target.checked)}
                   className="w-3.5 h-3.5 rounded text-amber-500 focus:ring-0 bg-stone-950 border-stone-700"
                 />
-                <span>Tự động nhận diện AI ngay khi bấm chụp (Tối ưu 1 chạm)</span>
+                <span>{languageService.t('Tự động nhận diện AI ngay khi bấm chụp (Tối ưu 1 chạm)', currentLang, 'Tự động nhận diện AI ngay khi bấm chụp (Tối ưu 1 chạm)')}</span>
               </label>
             </div>
           )}
@@ -695,13 +724,13 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
           {/* Optional context prompt */}
           <div>
             <label className="block text-xs font-semibold text-stone-300 mb-1.5 uppercase tracking-wider">
-              Ghi chú bổ sung cho AI (tùy chọn):
+              {languageService.t('Ghi chú bối cảnh (tùy chọn)', currentLang, languageService.t('Ghi chú bổ sung cho AI (tùy chọn):', currentLang, 'Ghi chú bối cảnh (tùy chọn)'))}
             </label>
             <input 
               type="text" 
               value={userNote} 
               onChange={(e) => setUserNote(e.target.value)} 
-              placeholder="Ví dụ: Hiện vật này tôi thấy tại chùa ở Bắc Ninh..."
+              placeholder={languageService.t('Ví dụ: Hiện vật tìm thấy ở Ninh Bình, chụp tại bảo tàng...', currentLang, languageService.t('Ví dụ: Hiện vật này tôi thấy tại chùa ở Bắc Ninh...', currentLang, 'Ví dụ: Hiện vật tìm thấy ở Ninh Bình, chụp tại bảo tàng...'))}
               className="w-full bg-stone-950 border border-stone-700 rounded-xl px-3.5 py-2.5 text-xs text-stone-100 focus:outline-none focus:border-amber-500"
             />
           </div>
@@ -717,12 +746,12 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
               {loading ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin text-stone-950" />
-                  <span>AI đang phân tích thị giác di sản...</span>
+                  <span>{languageService.t('AI đang phân tích thị giác di sản...', currentLang, 'AI đang phân tích thị giác di sản...')}</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-stone-950" />
-                  <span>{result ? 'Phân tích lại hình ảnh này' : 'Bắt đầu Nhận diện Di sản AI'}</span>
+                  <span>{result ? languageService.t('Phân tích lại hình ảnh này', currentLang, 'Phân tích lại hình ảnh này') : languageService.t('Bắt đầu Nhận diện Di sản AI', currentLang, 'Bắt đầu Nhận diện Di sản AI')}</span>
                 </>
               )}
             </button>
@@ -744,9 +773,11 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
               <div className="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto animate-bounce border border-amber-500/30">
                 <Scan className="w-8 h-8" />
               </div>
-              <h4 className="font-serif font-bold text-amber-200 text-lg">Đang đối chiếu dữ liệu di sản Việt Nam</h4>
+              <h4 className="font-serif font-bold text-amber-200 text-lg">
+                {languageService.t('Đang đối chiếu dữ liệu di sản Việt Nam', currentLang, 'Đang đối chiếu dữ liệu di sản Việt Nam')}
+              </h4>
               <p className="text-xs text-stone-400 max-w-md mx-auto leading-relaxed">
-                Mô hình Gemini 3.8 Flash Vision đang phân tích đặc trưng kiến trúc, hoa văn, niên đại và độ tin cậy lịch sử...
+                {languageService.t('Mô hình Gemini 3.8 Flash Vision đang phân tích đặc trưng kiến trúc, hoa văn, niên đại và độ tin cậy lịch sử...', currentLang, 'Mô hình Gemini 3.8 Flash Vision đang phân tích đặc trưng kiến trúc, hoa văn, niên đại và độ tin cậy lịch sử...')}
               </p>
               <div className="w-48 h-2 bg-stone-950 rounded-full mx-auto overflow-hidden border border-stone-800">
                 <div className="h-full bg-gradient-to-r from-amber-500 to-amber-300 animate-pulse w-3/4 rounded-full" />
@@ -759,9 +790,11 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
               <div className="w-14 h-14 rounded-2xl bg-stone-950 border border-stone-800 text-stone-600 flex items-center justify-center mx-auto">
                 <Compass className="w-7 h-7 text-stone-600" />
               </div>
-              <p className="text-sm font-semibold text-stone-300">Chưa có kết quả nhận diện</p>
+              <p className="text-sm font-semibold text-stone-300">
+                {languageService.t('Chưa có kết quả nhận diện', currentLang, 'Chưa có kết quả nhận diện')}
+              </p>
               <p className="text-xs text-stone-500 max-w-sm mx-auto leading-relaxed">
-                Chỉ cần hướng camera vào di sản và bấm <strong>"Chụp & Nhận Diện Ngay"</strong> hoặc chọn ảnh mẫu phía trên để trải nghiệm.
+                {languageService.t('Hãy hướng camera về phía di tích / hiện vật hoặc tải ảnh chụp lên, AI sẽ phân tích và cung cấp hồ sơ văn hóa chi tiết.', currentLang, languageService.t('Chỉ cần hướng camera vào di sản và bấm "Chụp & Nhận Diện Ngay" hoặc chọn ảnh mẫu phía trên để trải nghiệm.', currentLang, 'Hãy hướng camera về phía di tích / hiện vật hoặc tải ảnh chụp lên, AI sẽ phân tích và cung cấp hồ sơ văn hóa chi tiết.'))}
               </p>
             </div>
           )}
@@ -774,15 +807,15 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                      {result.categoryLabel}
+                      {languageService.t(result.categoryLabel, currentLang, result.categoryLabel)}
                     </span>
                     <span className="text-xs text-stone-400 flex items-center gap-1">
                       <MapPin className="w-3 h-3 text-red-400" />
-                      {result.province} ({result.region === 'north' ? 'Miền Bắc' : result.region === 'central' ? 'Miền Trung' : 'Miền Nam'})
+                      {result.province} ({result.region === 'north' ? languageService.t('Miền Bắc', currentLang, 'Miền Bắc') : result.region === 'central' ? languageService.t('Miền Trung', currentLang, 'Miền Trung') : languageService.t('Miền Nam', currentLang, 'Miền Nam')})
                     </span>
                   </div>
                   <h3 className="text-xl sm:text-2xl font-serif font-bold text-amber-100">
-                    {result.name}
+                    {languageService.t(result.name, currentLang, result.name)}
                   </h3>
                   {result.period && (
                     <p className="text-xs text-stone-400 mt-1 flex items-center gap-1.5">
@@ -797,19 +830,19 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                   {result.verifiedStatus === 'verified' && (
                     <div className="px-3 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-bold flex items-center gap-1.5 shadow-sm">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                      <span>[THÔNG TIN ĐÃ XÁC MINH]</span>
+                      <span>{languageService.t('[THÔNG TIN ĐÃ XÁC MINH]', currentLang, '[THÔNG TIN ĐÃ XÁC MINH]')}</span>
                     </div>
                   )}
                   {result.verifiedStatus === 'folk_legend' && (
                     <div className="px-3 py-1.5 rounded-xl bg-amber-950/60 border border-amber-500/50 text-amber-300 text-xs font-bold flex items-center gap-1.5 shadow-sm">
                       <HelpCircle className="w-4 h-4 text-amber-400" />
-                      <span>[TRUYỀN THUYẾT / DÂN GIAN]</span>
+                      <span>{languageService.t('[TRUYỀN THUYẾT / DÂN GIAN]', currentLang, '[TRUYỀN THUYẾT / DÂN GIAN]')}</span>
                     </div>
                   )}
                   {result.verifiedStatus === 'unverified' && (
                     <div className="px-3 py-1.5 rounded-xl bg-stone-800 border border-stone-600 text-stone-300 text-xs font-bold flex items-center gap-1.5 shadow-sm">
                       <Info className="w-4 h-4 text-stone-400" />
-                      <span>[THÔNG TIN CHƯA XÁC MINH]</span>
+                      <span>{languageService.t('[THÔNG TIN CHƯA XÁC MINH]', currentLang, '[THÔNG TIN CHƯA XÁC MINH]')}</span>
                     </div>
                   )}
                 </div>
@@ -820,7 +853,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                 <div>
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-400 mb-1 flex items-center gap-1.5">
                     <BookOpen className="w-3.5 h-3.5" />
-                    <span>Lịch sử & Nguồn gốc:</span>
+                    <span>{languageService.t('Lịch sử & Nguồn gốc:', currentLang, 'Lịch sử & Nguồn gốc:')}</span>
                   </h4>
                   <p className="text-stone-300 text-xs sm:text-sm leading-relaxed">
                     {result.history}
@@ -830,7 +863,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                 <div>
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-400 mb-1 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Ý nghĩa Văn hóa & Kiến trúc:</span>
+                    <span>{languageService.t('Ý nghĩa Văn hóa & Kiến trúc:', currentLang, 'Ý nghĩa Văn hóa & Kiến trúc:')}</span>
                   </h4>
                   <p className="text-stone-300 text-xs sm:text-sm leading-relaxed">
                     {result.culturalSignificance}
@@ -843,13 +876,13 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                 <div className="bg-stone-950/50 rounded-2xl p-4 border border-stone-800">
                   <h4 className="text-xs font-semibold text-amber-300 mb-2 flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Thông tin thú vị ít người biết:</span>
+                    <span>{languageService.t('Thông tin thú vị ít người biết:', currentLang, 'Thông tin thú vị ít người biết:')}</span>
                   </h4>
                   <ul className="space-y-1.5">
                     {result.interestingFacts.map((fact, idx) => (
                       <li key={idx} className="text-xs text-stone-300 flex items-start gap-2">
                         <span className="text-amber-400 font-bold">•</span>
-                        <span>{fact}</span>
+                        <span>{languageService.t(fact, currentLang, fact)}</span>
                       </li>
                     ))}
                   </ul>
@@ -859,7 +892,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
               {/* Suggested Questions to explore deeper */}
               {result.suggestedQuestions && result.suggestedQuestions.length > 0 && (
                 <div>
-                  <p className="text-xs text-stone-400 mb-2">Câu hỏi gợi ý để tìm hiểu sâu hơn:</p>
+                  <p className="text-xs text-stone-400 mb-2">{languageService.t('Câu hỏi gợi ý để tìm hiểu sâu hơn:', currentLang, 'Câu hỏi gợi ý để tìm hiểu sâu hơn:')}</p>
                   <div className="flex flex-wrap gap-2">
                     {result.suggestedQuestions.map((q, idx) => (
                       <button
@@ -868,7 +901,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                         className="text-xs bg-stone-800 hover:bg-stone-700 text-stone-200 px-3 py-1.5 rounded-lg border border-stone-700 hover:border-amber-400/40 text-left transition-colors flex items-center gap-1.5 cursor-pointer"
                       >
                         <MessageSquare className="w-3 h-3 text-sky-400" />
-                        <span>{q}</span>
+                        <span>{languageService.t(q, currentLang, q)}</span>
                       </button>
                     ))}
                   </div>
@@ -882,7 +915,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                   className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow transition-all cursor-pointer"
                 >
                   <Volume2 className="w-4 h-4" />
-                  <span>Nghe AI kể chuyện</span>
+                  <span>{languageService.t('Nghe AI kể chuyện', currentLang, 'Nghe AI kể chuyện')}</span>
                 </button>
 
                 <button
@@ -890,7 +923,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                   className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold flex items-center gap-1.5 border border-stone-700 transition-all cursor-pointer"
                 >
                   <Utensils className="w-4 h-4 text-orange-400" />
-                  <span>Ăn uống & Vui chơi gần đây</span>
+                  <span>{languageService.t('Ăn uống & Vui chơi gần đây', currentLang, 'Ăn uống & Vui chơi gần đây')}</span>
                 </button>
 
                 <button
@@ -898,7 +931,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                   className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold flex items-center gap-1.5 border border-stone-700 transition-all cursor-pointer"
                 >
                   <Compass className="w-4 h-4 text-emerald-400" />
-                  <span>Xem vị trí trên bản đồ</span>
+                  <span>{languageService.t('Xem vị trí trên bản đồ', currentLang, 'Xem vị trí trên bản đồ')}</span>
                 </button>
               </div>
 
@@ -915,6 +948,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
           isOpen={isAdminModalOpen}
           onClose={() => setIsAdminModalOpen(false)}
           onSaved={(newCfg) => setSectionConfig(newCfg)}
+          language={currentLang}
         />
       )}
 

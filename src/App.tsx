@@ -963,6 +963,7 @@ export default function App() {
         <HeritageEditModal
           heritage={null}
           isOpen={isGlobalHeritageModalOpen}
+          language={language}
           onClose={() => setIsGlobalHeritageModalOpen(false)}
           onSaveSuccess={() => setIsGlobalHeritageModalOpen(false)}
         />
