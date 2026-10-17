@@ -124,6 +124,63 @@ const getGeoJSONProvinceName = (properties: ProvinceProperties): string => {
   return cleanName.replace(/^(tỉnh|thành phố|tp\.)\s+/i, '').trim();
 };
 
+// Validate boundary data before accepting a source. Invalid local data must not block
+// the remote fallback, and malformed features must never reach Leaflet.
+const isValidBoundaryGeometry = (geometry: any): boolean => {
+  if (!geometry || !['Polygon', 'MultiPolygon'].includes(geometry.type)) return false;
+  const points: number[][] = [];
+  const collect = (value: any): void => {
+    if (
+      Array.isArray(value) &&
+      value.length >= 2 &&
+      typeof value[0] === 'number' &&
+      typeof value[1] === 'number'
+    ) {
+      points.push(value as number[]);
+      return;
+    }
+    if (Array.isArray(value)) value.forEach(collect);
+  };
+  collect(geometry.coordinates);
+  // All province-level boundaries are complex administrative polygons. The
+  // previous generator emitted 5-point placeholder rectangles; reject those.
+  return points.length >= 10 && points.every(([lng, lat]) =>
+    Number.isFinite(lng) &&
+    Number.isFinite(lat) &&
+    lng >= 90 && lng <= 140 &&
+    lat >= -5 && lat <= 40
+  );
+};
+
+const validateBoundaryCollection = (value: unknown): GeoJSON.FeatureCollection => {
+  const candidate = value as GeoJSON.FeatureCollection | null;
+  if (candidate?.type !== 'FeatureCollection' || !Array.isArray(candidate.features)) {
+    throw new Error('Nguồn bản đồ không trả về GeoJSON FeatureCollection hợp lệ.');
+  }
+
+  const validFeatures = candidate.features.filter((feature) =>
+    feature?.type === 'Feature' &&
+    isValidBoundaryGeometry(feature.geometry) &&
+    getGeoJSONProvinceName((feature.properties || {}) as ProvinceProperties).length > 0
+  );
+  const normalizedNames = validFeatures.map((feature) =>
+    normalizeProvinceName(getGeoJSONProvinceName((feature.properties || {}) as ProvinceProperties))
+  );
+  const distinctNames = new Set(normalizedNames);
+  const officialNames = new Set(
+    VIETNAM_34_ADMINISTRATIVE_UNITS.map((unit) => normalizeProvinceName(unit.shortName))
+  );
+  const unknownNames = [...distinctNames].filter((name) => !officialNames.has(name));
+
+  if (validFeatures.length !== 34 || distinctNames.size !== 34 || unknownNames.length > 0) {
+    throw new Error(
+      `GeoJSON không khớp danh mục hành chính hiện hành: ${validFeatures.length} hình học hợp lệ, ${distinctNames.size} tên riêng biệt, ${unknownNames.length} tên không nhận diện.`
+    );
+  }
+
+  return { ...candidate, features: validFeatures };
+};
+
 const getCategoryEmoji = (category?: string): string => {
   switch (category) {
     case 'palace':
@@ -394,7 +451,26 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+    const fetchBoundarySource = async (url: string, timeoutMs: number): Promise<unknown> => {
+      const sourceController = new AbortController();
+      const abortOnUnmount = () => sourceController.abort();
+      controller.signal.addEventListener('abort', abortOnUnmount, { once: true });
+      const timeoutId = window.setTimeout(() => sourceController.abort(), timeoutMs);
+      try {
+        const response = await fetch(url, {
+          signal: sourceController.signal,
+          headers: { Accept: 'application/geo+json, application/json' }
+        });
+        if (!response.ok) {
+          throw new Error(`GeoJSON source returned HTTP ${response.status} (${new URL(url, window.location.href).host}).`);
+        }
+        return await response.json();
+      } finally {
+        window.clearTimeout(timeoutId);
+        controller.signal.removeEventListener('abort', abortOnUnmount);
+      }
+    };
+
     const fetchGeoJSON = async () => {
       setLoadingGeo(true);
       setGeoLoadError(null);
@@ -402,57 +478,26 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
         let data: GeoJSON.FeatureCollection | null = null;
         let lastErrorMsg = '';
 
-        // Priority 1: Fast & verified local pre-packaged GeoJSON asset
+        // Validate the local asset before accepting it. Invalid local data must not
+        // prevent a clean retry against the remote source.
         try {
-          const localRes = await fetch(LOCAL_BOUNDARIES_URL, {
-            signal: controller.signal,
-            headers: { Accept: 'application/geo+json, application/json' }
-          });
-          if (localRes.ok) {
-            const parsed = await localRes.json() as GeoJSON.FeatureCollection;
-            if (parsed?.type === 'FeatureCollection' && Array.isArray(parsed.features) && parsed.features.length > 0) {
-              data = parsed;
-            }
-          }
+          data = validateBoundaryCollection(await fetchBoundarySource(LOCAL_BOUNDARIES_URL, 5000));
         } catch (localErr: any) {
-          console.warn('Local GeoJSON load failed, trying remote GIS source:', localErr);
+          console.warn('Local GeoJSON invalid or unavailable; trying remote GIS source:', localErr);
           lastErrorMsg = localErr?.message || '';
         }
 
-        // Priority 2: Remote GIS boundary source if local failed
-        if (!data) {
+        if (!data && !controller.signal.aborted) {
           try {
-            const remoteRes = await fetch(REMOTE_BOUNDARIES_URL, {
-              signal: controller.signal,
-              headers: { Accept: 'application/geo+json, application/json' }
-            });
-            if (remoteRes.ok) {
-              const parsed = await remoteRes.json() as GeoJSON.FeatureCollection;
-              if (parsed?.type === 'FeatureCollection' && Array.isArray(parsed.features) && parsed.features.length > 0) {
-                data = parsed;
-              }
-            } else {
-              lastErrorMsg = `Không tải được ranh giới hành chính (HTTP ${remoteRes.status})`;
-            }
+            data = validateBoundaryCollection(await fetchBoundarySource(REMOTE_BOUNDARIES_URL, 10000));
           } catch (remoteErr: any) {
-            console.warn('Remote GeoJSON load failed:', remoteErr);
-            lastErrorMsg = remoteErr?.message || '';
+            console.warn('Remote GeoJSON invalid or unavailable:', remoteErr);
+            lastErrorMsg = remoteErr?.message || lastErrorMsg;
           }
         }
 
-        if (!data || data.type !== 'FeatureCollection' || !Array.isArray(data.features) || data.features.length === 0) {
-          throw new Error(lastErrorMsg || 'Không tìm thấy dữ liệu ranh giới 34 tỉnh/thành.');
-        }
-
-        const namedFeatures = data.features.filter(feature => 
-          feature?.type === 'Feature' && 
-          feature.geometry && 
-          (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') &&
-          getGeoJSONProvinceName((feature.properties || {}) as ProvinceProperties).length > 0
-        );
-
-        if (namedFeatures.length === 0) {
-          throw new Error('Dữ liệu bản đồ thiếu tên hoặc hình học hợp lệ của tỉnh/thành.');
+        if (!data || data.type !== 'FeatureCollection' || !Array.isArray(data.features) || data.features.length !== 34) {
+          throw new Error(lastErrorMsg || 'Không tìm thấy dữ liệu ranh giới hợp lệ của 34 tỉnh/thành.');
         }
 
         if (isMounted) {
@@ -467,7 +512,6 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
         setGeoLoadError(message);
         console.warn('Vietnam 34-province GeoJSON load error:', err);
       } finally {
-        window.clearTimeout(timeoutId);
         if (isMounted) setLoadingGeo(false);
       }
     };
@@ -479,7 +523,6 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
     return () => {
       isMounted = false;
       controller.abort();
-      window.clearTimeout(timeoutId);
       window.removeEventListener('heritage-data-updated', handleDataUpdated);
     };
   }, [geoRetry]);
@@ -818,9 +861,9 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
     // Filter units based on zoom level to eliminate label collisions in dense regions:
     // At zoom < 7: only display 6 Centrally Governed Cities (Hà Nội, Hải Phòng, Huế, Đà Nẵng, TP.HCM, Cần Thơ)
     // At zoom >= 7: display all 34 units
-    const unitsToShow = currentZoom < 7 
-      ? VIETNAM_34_ADMINISTRATIVE_UNITS.filter(u => u.type === 'thanh_pho_tw')
-      : VIETNAM_34_ADMINISTRATIVE_UNITS;
+    // Keep labels off the national overview: heritage clusters already summarize this scale.
+    // Show all province labels only after the user zooms in enough to read them.
+    const unitsToShow = currentZoom < 7.5 ? [] : VIETNAM_34_ADMINISTRATIVE_UNITS;
 
     unitsToShow.forEach((unit) => {
       const displayName = unit.shortName;
@@ -925,52 +968,87 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
         provinceClusters[key].items.push(item);
       });
 
-      // Render Province Cluster Badges
-      Object.entries(provinceClusters).forEach(([provName, cluster]) => {
-        const { unit, count, items } = cluster;
-        const center = unit.center;
-        if (!center || !center[0] || !center[1]) return;
+      // Cluster nearby province badges in screen space at national zoom.
+      // This avoids 34 long labels occupying the same few pixels on mobile and desktop.
+      const map = mapInstanceRef.current;
+      const spatialClusters: Array<{
+        names: string[];
+        centers: [number, number][];
+        items: HeritageItem[];
+        pixel: L.Point;
+      }> = [];
 
+      Object.entries(provinceClusters).forEach(([provName, cluster]) => {
+        const center = cluster.unit.center;
+        if (!center || !Number.isFinite(center[0]) || !Number.isFinite(center[1])) return;
+        const pixel = map
+          ? map.latLngToContainerPoint([center[0], center[1]])
+          : L.point(center[1], center[0]);
+        const nearby = map
+          ? spatialClusters.find(group => group.pixel.distanceTo(pixel) < 100)
+          : undefined;
+
+        if (nearby) {
+          nearby.names.push(provName);
+          nearby.centers.push([center[0], center[1]]);
+          nearby.items.push(...cluster.items);
+        } else {
+          spatialClusters.push({
+            names: [provName],
+            centers: [[center[0], center[1]]],
+            items: [...cluster.items],
+            pixel
+          });
+        }
+      });
+
+      spatialClusters.forEach(cluster => {
+        const isMultiProvince = cluster.names.length > 1;
+        const label = isMultiProvince ? `${cluster.names.length} địa phương` : cluster.names[0];
+        const count = cluster.items.length;
+        const center: [number, number] = [
+          cluster.centers.reduce((sum, point) => sum + point[0], 0) / cluster.centers.length,
+          cluster.centers.reduce((sum, point) => sum + point[1], 0) / cluster.centers.length
+        ];
         const clusterIcon = L.divIcon({
           className: 'custom-heritage-cluster-pin',
           html: `
             <div class="group relative cursor-pointer select-none">
-              <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-950/90 border-2 border-amber-400 text-amber-300 shadow-xl backdrop-blur transition-all duration-200 hover:scale-110 hover:border-amber-200 hover:bg-amber-950/95 hover:ring-2 hover:ring-amber-400/50">
+              <div class="flex items-center gap-1 px-2 py-1 rounded-full bg-stone-950/95 border-2 border-amber-400 text-amber-300 shadow-xl backdrop-blur transition-all duration-200 hover:scale-105 hover:border-amber-200 hover:bg-amber-950/95">
                 <span class="text-xs">🏛️</span>
-                <span class="text-[11px] font-bold font-serif whitespace-nowrap text-stone-100">${provName}</span>
+                <span class="max-w-[66px] truncate text-[10px] font-bold font-serif whitespace-nowrap text-stone-100">${label}</span>
                 <span class="px-1.5 py-0.2 rounded-full bg-amber-500 text-stone-950 text-[10px] font-extrabold shadow">${count}</span>
               </div>
             </div>
           `,
-          iconSize: [110, 32],
-          iconAnchor: [55, 16]
+          iconSize: [96, 30],
+          iconAnchor: [48, 15]
         });
-
-        const marker = L.marker([center[0], center[1]], { icon: clusterIcon });
-        
+        const marker = L.marker(center, { icon: clusterIcon });
         const localizedHeritageWord = languageService.t('di sản', language, 'di sản');
         const otherHeritageWord = languageService.t('di sản khác...', language, 'di sản khác...');
         const tapToExploreWord = languageService.t('Chạm để phóng to & khám phá từng điểm', language, 'Chạm để phóng to & khám phá từng điểm');
-        const topNames = items.slice(0, 3).map(i => languageService.translateHeritageItem(i, language).name).join(', ');
+        const topNames = cluster.items.slice(0, 3).map(i => languageService.translateHeritageItem(i, language).name).join(', ');
+        const placeNames = cluster.names.join(', ');
         const tooltipHtml = `
-          <div class="p-2.5 bg-stone-950/95 text-stone-100 border border-amber-500/70 rounded-xl shadow-2xl text-xs font-serif max-w-[220px]">
-            <div class="font-bold text-amber-300 flex items-center gap-1.5">
-              <span>🏛️ ${provName} (${count} ${localizedHeritageWord})</span>
-            </div>
-            <div class="text-[11px] text-stone-300 mt-1 line-clamp-2">
-              ${topNames}${count > 3 ? ` và ${count - 3} ${otherHeritageWord}` : ''}
-            </div>
-            <div class="text-[9px] text-amber-400/90 mt-1 italic">
-              ${tapToExploreWord}
-            </div>
+          <div class="p-2.5 bg-stone-950/95 text-stone-100 border border-amber-500/70 rounded-xl shadow-2xl text-xs font-serif max-w-[240px]">
+            <div class="font-bold text-amber-300">${placeNames} (${count} ${localizedHeritageWord})</div>
+            <div class="text-[11px] text-stone-300 mt-1 line-clamp-2">${topNames}${count > 3 ? ` và ${count - 3} ${otherHeritageWord}` : ''}</div>
+            <div class="text-[9px] text-amber-400/90 mt-1 italic">${tapToExploreWord}</div>
           </div>
         `;
         marker.bindTooltip(tooltipHtml, { sticky: true, direction: 'top', className: 'hdv-custom-tooltip' });
-
         marker.on('click', () => {
-          handleSelectProvince(provName);
+          if (cluster.names.length === 1) {
+            handleSelectProvince(cluster.names[0]);
+            return;
+          }
+          const currentMap = mapInstanceRef.current;
+          if (currentMap) {
+            const bounds = L.latLngBounds(cluster.centers.map(point => L.latLng(point[0], point[1])));
+            currentMap.fitBounds(bounds, { padding: [32, 32], maxZoom: 9, animate: true });
+          }
         });
-
         markersGroup.addLayer(marker);
       });
 

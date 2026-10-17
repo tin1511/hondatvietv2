@@ -1,0 +1,74 @@
+name: Quality checks
+
+on:
+  push:
+    branches:
+      - 'audit/**'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-map-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: TypeScript check
+        run: bun run lint
+
+      - name: Production build
+        run: bun run build
+
+      - name: Repair known placeholder geometry in temporary CI checkout
+        run: node scripts/repair-hcmc-boundary.cjs
+
+      - name: Validate Vietnam province GeoJSON
+        run: node scripts/validate-vietnam-geojson.cjs
+
+  commit-map-data-fix:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/audit/')
+    needs: build-and-map-data
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Repair and validate boundary data
+        run: |
+          node scripts/repair-hcmc-boundary.cjs
+          node scripts/validate-vietnam-geojson.cjs
+
+      - name: Commit validated map data fix to this audit branch only
+        run: |
+          if ! git diff --quiet -- public/data/vietnam-provinces.geojson; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add public/data/vietnam-provinces.geojson
+            git commit -m "fix(map-data): restore Hồ Chí Minh boundary geometry"
+            git push origin "HEAD:"$GITHUB_REF_NAME
+          fi

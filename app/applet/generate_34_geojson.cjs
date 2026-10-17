@@ -83,15 +83,23 @@ const newFeatures = [];
 provinces.forEach(prov => {
   const keywords = mapping[prov.id] || [prov.name];
   
+  const normalizeName = value => String(value || '')
+    .normalize('NFD')
+    .replace(/[\\u0300-\\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/^(tinh|thanh pho|tp|province|city)\\s+/, '')
+    .replace(/\\s+(province|city)$/, '')
+    .trim();
+  const normalizedKeywords = new Set(keywords.map(normalizeName));
+
+  // Exact normalized matches only. Partial substring matching can assign the same
+  // province geometry to unrelated units and silently corrupt boundaries.
   const matchedFeatures = oldGeo.features.filter(f => {
-    const name = f.properties.Name || '';
-    const vnName = f.properties.vietnameseName || '';
-    return keywords.some(kw => 
-      name.toLowerCase().includes(kw.toLowerCase()) || 
-      vnName.toLowerCase().includes(kw.toLowerCase()) ||
-      kw.toLowerCase().includes(name.toLowerCase()) ||
-      kw.toLowerCase().includes(vnName.toLowerCase())
-    );
+    const names = [f.properties?.Name, f.properties?.vietnameseName].map(normalizeName);
+    return names.some(name => name && normalizedKeywords.has(name));
   });
 
   if (matchedFeatures.length > 0) {
@@ -129,21 +137,18 @@ provinces.forEach(prov => {
       }
     });
   } else {
-    newFeatures.push({
-      type: 'Feature',
-      properties: {
-        Name: prov.id,
-        vietnameseName: prov.name,
-        region: prov.region,
-        center: [prov.lat, prov.lng]
-      },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[[prov.lng, prov.lat], [prov.lng + 0.1, prov.lat], [prov.lng + 0.1, prov.lat + 0.1], [prov.lng, prov.lat + 0.1], [prov.lng, prov.lat]]]
-      }
-    });
+    throw new Error(`Missing real boundary geometry for "${prov.name}". No placeholder polygon was generated.`);
   }
 });
+
+if (newFeatures.length !== 34) {
+  throw new Error(`Expected 34 province boundaries, generated ${newFeatures.length}. Refusing to overwrite the GeoJSON asset.`);
+}
+
+const uniqueNames = new Set(newFeatures.map(feature => feature.properties.vietnameseName));
+if (uniqueNames.size !== 34) {
+  throw new Error(`Expected 34 unique province names, found ${uniqueNames.size}. Refusing to overwrite the GeoJSON asset.`);
+}
 
 const newGeoJSON = {
   type: 'FeatureCollection',
