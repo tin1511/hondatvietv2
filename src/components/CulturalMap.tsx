@@ -446,7 +446,26 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+    const fetchBoundarySource = async (url: string, timeoutMs: number): Promise<unknown> => {
+      const sourceController = new AbortController();
+      const abortOnUnmount = () => sourceController.abort();
+      controller.signal.addEventListener('abort', abortOnUnmount, { once: true });
+      const timeoutId = window.setTimeout(() => sourceController.abort(), timeoutMs);
+      try {
+        const response = await fetch(url, {
+          signal: sourceController.signal,
+          headers: { Accept: 'application/geo+json, application/json' }
+        });
+        if (!response.ok) {
+          throw new Error(`GeoJSON source returned HTTP ${response.status} (${new URL(url, window.location.href).host}).`);
+        }
+        return await response.json();
+      } finally {
+        window.clearTimeout(timeoutId);
+        controller.signal.removeEventListener('abort', abortOnUnmount);
+      }
+    };
+
     const fetchGeoJSON = async () => {
       setLoadingGeo(true);
       setGeoLoadError(null);
@@ -454,49 +473,26 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
         let data: GeoJSON.FeatureCollection | null = null;
         let lastErrorMsg = '';
 
-        // Priority 1: Fast & verified local pre-packaged GeoJSON asset
+        // Validate the local asset before accepting it. Invalid local data must not
+        // prevent a clean retry against the remote source.
         try {
-          const localRes = await fetch(LOCAL_BOUNDARIES_URL, {
-            signal: controller.signal,
-            headers: { Accept: 'application/geo+json, application/json' }
-          });
-          if (localRes.ok) {
-            data = validateBoundaryCollection(await localRes.json());
-          } else {
-            lastErrorMsg = `GeoJSON nội bộ trả về HTTP ${localRes.status}`;
-          }
+          data = validateBoundaryCollection(await fetchBoundarySource(LOCAL_BOUNDARIES_URL, 5000));
         } catch (localErr: any) {
           console.warn('Local GeoJSON invalid or unavailable; trying remote GIS source:', localErr);
           lastErrorMsg = localErr?.message || '';
-          data = null;
         }
 
-        // Priority 2: Remote GIS boundary source if local failed
-        if (!data) {
+        if (!data && !controller.signal.aborted) {
           try {
-            const remoteRes = await fetch(REMOTE_BOUNDARIES_URL, {
-              signal: controller.signal,
-              headers: { Accept: 'application/geo+json, application/json' }
-            });
-            if (remoteRes.ok) {
-              data = validateBoundaryCollection(await remoteRes.json());
-            } else {
-              lastErrorMsg = `Không tải được ranh giới hành chính (HTTP ${remoteRes.status})`;
-            }
+            data = validateBoundaryCollection(await fetchBoundarySource(REMOTE_BOUNDARIES_URL, 10000));
           } catch (remoteErr: any) {
             console.warn('Remote GeoJSON invalid or unavailable:', remoteErr);
-            lastErrorMsg = remoteErr?.message || '';
-            data = null;
+            lastErrorMsg = remoteErr?.message || lastErrorMsg;
           }
         }
 
-        if (!data || data.type !== 'FeatureCollection' || !Array.isArray(data.features) || data.features.length === 0) {
-          throw new Error(lastErrorMsg || 'Không tìm thấy dữ liệu ranh giới 34 tỉnh/thành.');
-        }
-
-        // The source validator has already filtered malformed and unnamed features.
-        if (data.features.length !== 34) {
-          throw new Error('Dữ liệu bản đồ phải có đúng 34 đơn vị cấp tỉnh hợp lệ.');
+        if (!data || data.type !== 'FeatureCollection' || !Array.isArray(data.features) || data.features.length !== 34) {
+          throw new Error(lastErrorMsg || 'Không tìm thấy dữ liệu ranh giới hợp lệ của 34 tỉnh/thành.');
         }
 
         if (isMounted) {
@@ -511,7 +507,6 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
         setGeoLoadError(message);
         console.warn('Vietnam 34-province GeoJSON load error:', err);
       } finally {
-        window.clearTimeout(timeoutId);
         if (isMounted) setLoadingGeo(false);
       }
     };
@@ -523,7 +518,6 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
     return () => {
       isMounted = false;
       controller.abort();
-      window.clearTimeout(timeoutId);
       window.removeEventListener('heritage-data-updated', handleDataUpdated);
     };
   }, [geoRetry]);
