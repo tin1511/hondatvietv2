@@ -142,7 +142,9 @@ const isValidBoundaryGeometry = (geometry: any): boolean => {
     if (Array.isArray(value)) value.forEach(collect);
   };
   collect(geometry.coordinates);
-  return points.length >= 4 && points.every(([lng, lat]) =>
+  // All province-level boundaries are complex administrative polygons. The
+  // previous generator emitted 5-point placeholder rectangles; reject those.
+  return points.length >= 10 && points.every(([lng, lat]) =>
     Number.isFinite(lng) &&
     Number.isFinite(lat) &&
     lng >= 90 && lng <= 140 &&
@@ -161,15 +163,18 @@ const validateBoundaryCollection = (value: unknown): GeoJSON.FeatureCollection =
     isValidBoundaryGeometry(feature.geometry) &&
     getGeoJSONProvinceName((feature.properties || {}) as ProvinceProperties).length > 0
   );
-  const distinctNames = new Set(
-    validFeatures.map((feature) =>
-      normalizeProvinceName(getGeoJSONProvinceName((feature.properties || {}) as ProvinceProperties))
-    )
+  const normalizedNames = validFeatures.map((feature) =>
+    normalizeProvinceName(getGeoJSONProvinceName((feature.properties || {}) as ProvinceProperties))
   );
+  const distinctNames = new Set(normalizedNames);
+  const officialNames = new Set(
+    VIETNAM_34_ADMINISTRATIVE_UNITS.map((unit) => normalizeProvinceName(unit.shortName))
+  );
+  const unknownNames = [...distinctNames].filter((name) => !officialNames.has(name));
 
-  if (validFeatures.length !== 34 || distinctNames.size !== 34) {
+  if (validFeatures.length !== 34 || distinctNames.size !== 34 || unknownNames.length > 0) {
     throw new Error(
-      `GeoJSON không đạt chuẩn 34 tỉnh/thành: có ${validFeatures.length} hình học hợp lệ và ${distinctNames.size} tên riêng biệt.`
+      `GeoJSON không khớp danh mục hành chính hiện hành: ${validFeatures.length} hình học hợp lệ, ${distinctNames.size} tên riêng biệt, ${unknownNames.length} tên không nhận diện.`
     );
   }
 
