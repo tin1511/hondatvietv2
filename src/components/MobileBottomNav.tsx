@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Compass, 
   Camera, 
@@ -46,6 +46,15 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onExploreLandmark
 }) => {
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isMoreMenuOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMoreMenuOpen(false);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [isMoreMenuOpen]);
 
   const mainBottomTabs = [
     { id: 'home', label: languageService.t('mobile.home', language, 'Trang chủ'), icon: Compass },
@@ -129,7 +138,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <nav 
         id="mobile-bottom-nav" 
         aria-label={languageService.t('mobile.navigation', language, 'Điều hướng chính trên điện thoại')}
-        className="md:hidden fixed inset-x-0 bottom-0 z-40 bg-stone-950/95 backdrop-blur-xl border-t border-amber-900/40 shadow-2xl pb-[env(safe-area-inset-bottom)] transition-transform duration-200"
+        className="md:hidden fixed left-[env(safe-area-inset-left)] right-[env(safe-area-inset-right)] bottom-0 z-40 bg-stone-950/95 backdrop-blur-xl border-t border-amber-900/40 shadow-2xl pb-[env(safe-area-inset-bottom)] transition-transform duration-200"
       >
         <div className="grid grid-cols-6 items-stretch min-h-16 px-0.5 max-w-lg mx-auto">
           {mainBottomTabs.map((item) => {
@@ -140,7 +149,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                 key={item.id}
                 id={`mobile-tab-${item.id}`}
                 onClick={() => handleSelectTab(item.id)}
-                className={`relative min-w-0 flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-colors duration-150 active:bg-stone-800/70 ${
+                className={`relative min-w-0 min-h-16 flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-colors duration-150 active:bg-stone-800/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400 ${
                   isActive 
                     ? 'text-amber-400 font-bold' 
                     : 'text-stone-400 hover:text-stone-200 font-medium'
@@ -171,7 +180,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             aria-controls="mobile-more-features-sheet"
             aria-label={languageService.t('mobile.more', language, 'Thêm tính năng')}
             onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-            className={`relative min-w-0 flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-colors duration-150 active:bg-stone-800/70 ${
+            className={`relative min-w-0 min-h-16 flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-colors duration-150 active:bg-stone-800/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400 ${
               isMoreMenuOpen || ['food', 'itinerary', 'crafts', 'learning', 'favorites', 'profile', 'community', 'admin'].includes(currentTab)
                 ? 'text-amber-400 font-bold' 
                 : 'text-stone-400 hover:text-stone-200 font-medium'
@@ -232,8 +241,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setIsMoreMenuOpen(false)}
-                  className="p-2 rounded-full bg-stone-800 text-stone-300 hover:text-white"
+                  className="min-w-11 min-h-11 p-2 rounded-full bg-stone-800 text-stone-300 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
                   title={languageService.t('mobile.close', language, 'Đóng menu')}
                 >
                   <X className="w-5 h-5" />
@@ -317,15 +327,17 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                 const Icon = item.icon;
                 const isItemActive = currentTab === item.id;
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={item.id}
+                    id={`mobile-more-link-${item.id}`}
                     onClick={() => handleSelectTab(item.id)}
-                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 active:scale-[0.98] ${
+                    aria-current={isItemActive ? 'page' : undefined}
+                    className={`w-full min-h-14 p-3.5 rounded-2xl border transition-all text-left flex items-center gap-3 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                       isItemActive 
                         ? 'bg-amber-500/20 border-amber-500 text-amber-200 shadow-md' 
                         : 'bg-stone-950/70 border-stone-800 hover:border-amber-500/40 text-stone-300'
                     }`}
-                  >
                     <div className={`w-10 h-10 rounded-xl ${item.bg} ${item.color} flex items-center justify-center shrink-0`}>
                       <Icon className="w-5 h-5" />
                     </div>
@@ -344,7 +356,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                         {item.description}
                       </p>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -352,8 +364,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             {/* Admin Dashboard link if needed */}
             <div className="pt-2 border-t border-stone-800 flex items-center justify-between text-xs text-stone-400">
               <button
+                type="button"
                 onClick={() => handleSelectTab('admin')}
-                className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 font-medium py-1"
+                className="flex min-h-11 items-center gap-1.5 text-amber-400 hover:text-amber-300 font-medium py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
               >
                 <ShieldCheck className="w-4 h-4 text-amber-500" />
                 <span>Trang Quản trị & Kiểm định Di sản</span>
