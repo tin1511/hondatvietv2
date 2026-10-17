@@ -338,6 +338,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                         ? 'bg-amber-500/20 border-amber-500 text-amber-200 shadow-md' 
                         : 'bg-stone-950/70 border-stone-800 hover:border-amber-500/40 text-stone-300'
                     }`}
+                  >
                     <div className={`w-10 h-10 rounded-xl ${item.bg} ${item.color} flex items-center justify-center shrink-0`}>
                       <Icon className="w-5 h-5" />
                     </div>
