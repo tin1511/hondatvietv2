@@ -9,7 +9,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-and-map-data:
@@ -36,5 +36,19 @@ jobs:
       - name: Production build
         run: bun run build
 
+      - name: Repair known placeholder geometry on audit branches
+        run: node scripts/repair-hcmc-boundary.cjs
+
       - name: Validate Vietnam province GeoJSON
         run: node scripts/validate-vietnam-geojson.cjs
+
+      - name: Commit validated map data fix to this audit branch only
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/audit/')
+        run: |
+          if ! git diff --quiet -- public/data/vietnam-provinces.geojson; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add public/data/vietnam-provinces.geojson
+            git commit -m "fix(map-data): restore Hồ Chí Minh boundary geometry"
+            git push origin "HEAD:"$GITHUB_REF_NAME
+          fi
