@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Sparkles, 
   MapPin, 
@@ -60,7 +60,26 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAddHeritage
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
   const [siteLogo, setSiteLogo] = useState<string>(() => storageService.getSiteLogo());
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (!headerRef.current?.contains(event.target as Node)) setMobileMenuOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false);
+    };
+
+    document.addEventListener('pointerdown', closeOnOutsidePointer);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsidePointer);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     const handleLogoChange = (e: Event) => {
@@ -85,11 +104,19 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'community', label: languageService.t('nav.community', language, 'Cộng đồng'), icon: Users },
   ];
 
+  // Keep mobile navigation inclusive of the modules already exposed by the bottom-sheet menu.
+  const mobileNavItems = [
+    ...navItems,
+    { id: 'food', label: languageService.t('tools.food', language, 'Ăn Uống & Vui Chơi'), icon: Utensils },
+    { id: 'crafts', label: languageService.t('tools.crafts', language, 'Làng Nghề Cổ'), icon: BookOpen },
+    { id: 'admin', label: languageService.t('nav.admin', language, 'Quản trị viên'), icon: ShieldCheck },
+  ];
+
   return (
-    <header className="sticky top-0 z-40 bg-stone-950/90 backdrop-blur-md border-b border-amber-900/30 text-stone-100 shadow-xl">
+    <header ref={headerRef} className="sticky top-0 z-40 bg-stone-950/90 backdrop-blur-md border-b border-amber-900/30 text-stone-100 shadow-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Row 1: Brand & Right Actions */}
-        <div className="flex items-center justify-between h-16 overflow-x-auto scrollbar-none gap-2 shrink-0 pr-6 sm:pr-8">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between min-h-16 py-2 gap-2 xl:gap-3">
           
           {/* Logo & Brand & Back Button */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -146,7 +173,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex flex-wrap items-center justify-start xl:justify-end gap-1.5 sm:gap-2 shrink-0 w-full xl:w-auto min-w-0">
             
             {/* 1. Authentication / Profile Status Button */}
             {userProfile.isLoggedIn ? (
@@ -273,8 +300,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Mobile Hamburger Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="xl:hidden p-2 rounded-xl text-stone-300 hover:text-stone-100 hover:bg-stone-800 transition-colors shrink-0"
-              aria-label="Menu"
+              className="xl:hidden p-2 min-w-11 min-h-11 rounded-xl text-stone-300 hover:text-stone-100 hover:bg-stone-800 transition-colors shrink-0 inline-flex items-center justify-center"
+              aria-label={mobileMenuOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-primary-menu"
+              title={mobileMenuOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
             >
               {mobileMenuOpen ? <X className="w-5 h-5 text-amber-400" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -309,6 +339,129 @@ export const Navbar: React.FC<NavbarProps> = ({
             );
           })}
         </nav>
+
+        {/* Responsive menu: every primary route and header action remains reachable below xl. */}
+        <div
+          id="mobile-primary-menu"
+          className={`xl:hidden border-t border-amber-900/30 py-3 space-y-4 ${mobileMenuOpen ? 'block' : 'hidden'}`}
+          aria-label="Tất cả mục điều hướng"
+        >
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {mobileNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  id={`mobile-nav-link-${item.id}`}
+                  onClick={() => {
+                    onSelectTab(item.id);
+                    setMobileMenuOpen(false);
+                  }}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`flex min-h-11 min-w-0 items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
+                    isActive
+                      ? 'border-amber-500/60 bg-amber-500/15 text-amber-200'
+                      : 'border-stone-800 bg-stone-900/80 text-stone-200 hover:border-amber-500/40 hover:bg-stone-800'
+                  }`}
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-amber-400" />
+                  <span className="min-w-0 flex-1 whitespace-normal break-words">{item.label}</span>
+                  {item.badge && <span className="shrink-0 rounded bg-amber-500 px-1 py-0.5 text-[9px] font-bold text-stone-950">{item.badge}</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="border-t border-stone-800 pt-3">
+            <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-wider text-stone-500">Tài khoản và tiện ích</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {userProfile.isLoggedIn ? (
+                <button
+                  type="button"
+                  id="mobile-action-profile"
+                  onClick={() => { onSelectTab('profile'); setMobileMenuOpen(false); }}
+                  className="flex min-h-11 items-center gap-2 rounded-xl border border-amber-500/30 bg-stone-900 px-3 py-2 text-left text-xs font-semibold text-stone-100 hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                >
+                  <User className="h-4 w-4 shrink-0 text-amber-400" />
+                  <span className="min-w-0 break-words">{userProfile.displayName || languageService.t('nav.profile', language, 'Hồ sơ')}</span>
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    id="mobile-action-login"
+                    onClick={() => { onOpenAuthModal('login'); setMobileMenuOpen(false); }}
+                    className="flex min-h-11 items-center gap-2 rounded-xl border border-amber-500/30 bg-stone-900 px-3 py-2 text-left text-xs font-semibold text-amber-200 hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                  >
+                    <LogIn className="h-4 w-4 shrink-0" />
+                    <span>Đăng nhập</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="mobile-action-register"
+                    onClick={() => { onOpenAuthModal('register'); setMobileMenuOpen(false); }}
+                    className="flex min-h-11 items-center gap-2 rounded-xl border border-amber-400/50 bg-amber-500 px-3 py-2 text-left text-xs font-bold text-stone-950 hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200"
+                  >
+                    <User className="h-4 w-4 shrink-0" />
+                    <span>Đăng ký</span>
+                  </button>
+                </>
+              )}
+
+              <button
+                type="button"
+                id="mobile-action-favorites"
+                onClick={() => { onSelectTab('favorites'); setMobileMenuOpen(false); }}
+                className="flex min-h-11 items-center gap-2 rounded-xl border border-stone-800 bg-stone-900 px-3 py-2 text-left text-xs font-semibold text-stone-200 hover:border-amber-500/40 hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+              >
+                <Heart className="h-4 w-4 shrink-0 text-red-400" />
+                <span>Yêu thích{favoritesCount > 0 ? ` (${favoritesCount})` : ''}</span>
+              </button>
+
+              {onOpenAddHeritage && (
+                <button
+                  type="button"
+                  id="mobile-action-add-heritage"
+                  onClick={() => { onOpenAddHeritage(); setMobileMenuOpen(false); }}
+                  className="flex min-h-11 items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-left text-xs font-semibold text-amber-200 hover:bg-amber-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                >
+                  <Plus className="h-4 w-4 shrink-0" />
+                  <span>Đề xuất mới</span>
+                </button>
+              )}
+
+              {onPeekBackground && (
+                <button
+                  type="button"
+                  id="mobile-action-peek-background"
+                  onClick={() => { onPeekBackground(); setMobileMenuOpen(false); }}
+                  className="flex min-h-11 items-center gap-2 rounded-xl border border-stone-800 bg-stone-900 px-3 py-2 text-left text-xs font-semibold text-stone-200 hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                >
+                  <Eye className="h-4 w-4 shrink-0 text-emerald-400" />
+                  <span>Ngắm ảnh nền</span>
+                </button>
+              )}
+
+              {onOpenOfflineManager && (
+                <button
+                  type="button"
+                  id="mobile-action-offline"
+                  onClick={() => { onOpenOfflineManager(); setMobileMenuOpen(false); }}
+                  className="flex min-h-11 items-center gap-2 rounded-xl border border-stone-800 bg-stone-900 px-3 py-2 text-left text-xs font-semibold text-stone-200 hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                >
+                  <Database className="h-4 w-4 shrink-0 text-amber-400" />
+                  <span>Ngoại tuyến</span>
+                </button>
+              )}
+
+              <div className="min-w-0" onClick={() => setMobileMenuOpen(false)}>
+                <PWAInstallButton variant="menuItem" className="min-h-11 border border-stone-800 bg-stone-900" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
 
