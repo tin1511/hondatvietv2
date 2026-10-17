@@ -116,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header ref={headerRef} className="sticky top-0 z-40 bg-stone-950/90 backdrop-blur-md border-b border-amber-900/30 text-stone-100 shadow-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Row 1: Brand & Right Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between min-h-16 py-2 gap-2 sm:gap-3">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between min-h-16 py-2 gap-2 xl:gap-3">
           
           {/* Logo & Brand & Back Button */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -173,7 +173,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Right actions */}
-          <div className="flex flex-wrap items-center justify-start sm:justify-end gap-1.5 sm:gap-2 shrink-0 w-full sm:w-auto min-w-0">
+          <div className="flex flex-wrap items-center justify-start xl:justify-end gap-1.5 sm:gap-2 shrink-0 w-full xl:w-auto min-w-0">
             
             {/* 1. Authentication / Profile Status Button */}
             {userProfile.isLoggedIn ? (
