@@ -963,52 +963,87 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
         provinceClusters[key].items.push(item);
       });
 
-      // Render Province Cluster Badges
-      Object.entries(provinceClusters).forEach(([provName, cluster]) => {
-        const { unit, count, items } = cluster;
-        const center = unit.center;
-        if (!center || !center[0] || !center[1]) return;
+      // Cluster nearby province badges in screen space at national zoom.
+      // This avoids 34 long labels occupying the same few pixels on mobile and desktop.
+      const map = mapInstanceRef.current;
+      const spatialClusters: Array<{
+        names: string[];
+        centers: [number, number][];
+        items: HeritageItem[];
+        pixel: L.Point;
+      }> = [];
 
+      Object.entries(provinceClusters).forEach(([provName, cluster]) => {
+        const center = cluster.unit.center;
+        if (!center || !Number.isFinite(center[0]) || !Number.isFinite(center[1])) return;
+        const pixel = map
+          ? map.latLngToContainerPoint([center[0], center[1]])
+          : L.point(center[1], center[0]);
+        const nearby = map
+          ? spatialClusters.find(group => group.pixel.distanceTo(pixel) < 100)
+          : undefined;
+
+        if (nearby) {
+          nearby.names.push(provName);
+          nearby.centers.push([center[0], center[1]]);
+          nearby.items.push(...cluster.items);
+        } else {
+          spatialClusters.push({
+            names: [provName],
+            centers: [[center[0], center[1]]],
+            items: [...cluster.items],
+            pixel
+          });
+        }
+      });
+
+      spatialClusters.forEach(cluster => {
+        const isMultiProvince = cluster.names.length > 1;
+        const label = isMultiProvince ? `${cluster.names.length} địa phương` : cluster.names[0];
+        const count = cluster.items.length;
+        const center: [number, number] = [
+          cluster.centers.reduce((sum, point) => sum + point[0], 0) / cluster.centers.length,
+          cluster.centers.reduce((sum, point) => sum + point[1], 0) / cluster.centers.length
+        ];
         const clusterIcon = L.divIcon({
           className: 'custom-heritage-cluster-pin',
           html: `
             <div class="group relative cursor-pointer select-none">
-              <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-950/90 border-2 border-amber-400 text-amber-300 shadow-xl backdrop-blur transition-all duration-200 hover:scale-110 hover:border-amber-200 hover:bg-amber-950/95 hover:ring-2 hover:ring-amber-400/50">
+              <div class="flex items-center gap-1 px-2 py-1 rounded-full bg-stone-950/95 border-2 border-amber-400 text-amber-300 shadow-xl backdrop-blur transition-all duration-200 hover:scale-105 hover:border-amber-200 hover:bg-amber-950/95">
                 <span class="text-xs">🏛️</span>
-                <span class="text-[11px] font-bold font-serif whitespace-nowrap text-stone-100">${provName}</span>
+                <span class="max-w-[66px] truncate text-[10px] font-bold font-serif whitespace-nowrap text-stone-100">${label}</span>
                 <span class="px-1.5 py-0.2 rounded-full bg-amber-500 text-stone-950 text-[10px] font-extrabold shadow">${count}</span>
               </div>
             </div>
           `,
-          iconSize: [110, 32],
-          iconAnchor: [55, 16]
+          iconSize: [96, 30],
+          iconAnchor: [48, 15]
         });
-
-        const marker = L.marker([center[0], center[1]], { icon: clusterIcon });
-        
+        const marker = L.marker(center, { icon: clusterIcon });
         const localizedHeritageWord = languageService.t('di sản', language, 'di sản');
         const otherHeritageWord = languageService.t('di sản khác...', language, 'di sản khác...');
         const tapToExploreWord = languageService.t('Chạm để phóng to & khám phá từng điểm', language, 'Chạm để phóng to & khám phá từng điểm');
-        const topNames = items.slice(0, 3).map(i => languageService.translateHeritageItem(i, language).name).join(', ');
+        const topNames = cluster.items.slice(0, 3).map(i => languageService.translateHeritageItem(i, language).name).join(', ');
+        const placeNames = cluster.names.join(', ');
         const tooltipHtml = `
-          <div class="p-2.5 bg-stone-950/95 text-stone-100 border border-amber-500/70 rounded-xl shadow-2xl text-xs font-serif max-w-[220px]">
-            <div class="font-bold text-amber-300 flex items-center gap-1.5">
-              <span>🏛️ ${provName} (${count} ${localizedHeritageWord})</span>
-            </div>
-            <div class="text-[11px] text-stone-300 mt-1 line-clamp-2">
-              ${topNames}${count > 3 ? ` và ${count - 3} ${otherHeritageWord}` : ''}
-            </div>
-            <div class="text-[9px] text-amber-400/90 mt-1 italic">
-              ${tapToExploreWord}
-            </div>
+          <div class="p-2.5 bg-stone-950/95 text-stone-100 border border-amber-500/70 rounded-xl shadow-2xl text-xs font-serif max-w-[240px]">
+            <div class="font-bold text-amber-300">${placeNames} (${count} ${localizedHeritageWord})</div>
+            <div class="text-[11px] text-stone-300 mt-1 line-clamp-2">${topNames}${count > 3 ? ` và ${count - 3} ${otherHeritageWord}` : ''}</div>
+            <div class="text-[9px] text-amber-400/90 mt-1 italic">${tapToExploreWord}</div>
           </div>
         `;
         marker.bindTooltip(tooltipHtml, { sticky: true, direction: 'top', className: 'hdv-custom-tooltip' });
-
         marker.on('click', () => {
-          handleSelectProvince(provName);
+          if (cluster.names.length === 1) {
+            handleSelectProvince(cluster.names[0]);
+            return;
+          }
+          const currentMap = mapInstanceRef.current;
+          if (currentMap) {
+            const bounds = L.latLngBounds(cluster.centers.map(point => L.latLng(point[0], point[1])));
+            currentMap.fitBounds(bounds, { padding: [32, 32], maxZoom: 9, animate: true });
+          }
         });
-
         markersGroup.addLayer(marker);
       });
 
