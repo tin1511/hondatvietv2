@@ -88,8 +88,10 @@ provinces.forEach(prov => {
     .replace(/[\\u0300-\\u036f]/g, '')
     .replace(/đ/g, 'd')
     .toLowerCase()
-    .replace(/^(tinh|thanh pho|tp|province|city)\\s+/, '')
     .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/^(tinh|thanh pho|tp|province|city)\\s+/, '')
+    .replace(/\\s+(province|city)$/, '')
     .trim();
   const normalizedKeywords = new Set(keywords.map(normalizeName));
 
