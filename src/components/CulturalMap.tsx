@@ -124,6 +124,58 @@ const getGeoJSONProvinceName = (properties: ProvinceProperties): string => {
   return cleanName.replace(/^(tỉnh|thành phố|tp\.)\s+/i, '').trim();
 };
 
+// Validate boundary data before accepting a source. Invalid local data must not block
+// the remote fallback, and malformed features must never reach Leaflet.
+const isValidBoundaryGeometry = (geometry: any): boolean => {
+  if (!geometry || !['Polygon', 'MultiPolygon'].includes(geometry.type)) return false;
+  const points: number[][] = [];
+  const collect = (value: any): void => {
+    if (
+      Array.isArray(value) &&
+      value.length >= 2 &&
+      typeof value[0] === 'number' &&
+      typeof value[1] === 'number'
+    ) {
+      points.push(value as number[]);
+      return;
+    }
+    if (Array.isArray(value)) value.forEach(collect);
+  };
+  collect(geometry.coordinates);
+  return points.length >= 4 && points.every(([lng, lat]) =>
+    Number.isFinite(lng) &&
+    Number.isFinite(lat) &&
+    lng >= 90 && lng <= 140 &&
+    lat >= -5 && lat <= 40
+  );
+};
+
+const validateBoundaryCollection = (value: unknown): GeoJSON.FeatureCollection => {
+  const candidate = value as GeoJSON.FeatureCollection | null;
+  if (candidate?.type !== 'FeatureCollection' || !Array.isArray(candidate.features)) {
+    throw new Error('Nguồn bản đồ không trả về GeoJSON FeatureCollection hợp lệ.');
+  }
+
+  const validFeatures = candidate.features.filter((feature) =>
+    feature?.type === 'Feature' &&
+    isValidBoundaryGeometry(feature.geometry) &&
+    getGeoJSONProvinceName((feature.properties || {}) as ProvinceProperties).length > 0
+  );
+  const distinctNames = new Set(
+    validFeatures.map((feature) =>
+      normalizeProvinceName(getGeoJSONProvinceName((feature.properties || {}) as ProvinceProperties))
+    )
+  );
+
+  if (validFeatures.length !== 34 || distinctNames.size !== 34) {
+    throw new Error(
+      `GeoJSON không đạt chuẩn 34 tỉnh/thành: có ${validFeatures.length} hình học hợp lệ và ${distinctNames.size} tên riêng biệt.`
+    );
+  }
+
+  return { ...candidate, features: validFeatures };
+};
+
 const getCategoryEmoji = (category?: string): string => {
   switch (category) {
     case 'palace':
@@ -409,14 +461,14 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
             headers: { Accept: 'application/geo+json, application/json' }
           });
           if (localRes.ok) {
-            const parsed = await localRes.json() as GeoJSON.FeatureCollection;
-            if (parsed?.type === 'FeatureCollection' && Array.isArray(parsed.features) && parsed.features.length > 0) {
-              data = parsed;
-            }
+            data = validateBoundaryCollection(await localRes.json());
+          } else {
+            lastErrorMsg = `GeoJSON nội bộ trả về HTTP ${localRes.status}`;
           }
         } catch (localErr: any) {
-          console.warn('Local GeoJSON load failed, trying remote GIS source:', localErr);
+          console.warn('Local GeoJSON invalid or unavailable; trying remote GIS source:', localErr);
           lastErrorMsg = localErr?.message || '';
+          data = null;
         }
 
         // Priority 2: Remote GIS boundary source if local failed
@@ -427,16 +479,14 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
               headers: { Accept: 'application/geo+json, application/json' }
             });
             if (remoteRes.ok) {
-              const parsed = await remoteRes.json() as GeoJSON.FeatureCollection;
-              if (parsed?.type === 'FeatureCollection' && Array.isArray(parsed.features) && parsed.features.length > 0) {
-                data = parsed;
-              }
+              data = validateBoundaryCollection(await remoteRes.json());
             } else {
               lastErrorMsg = `Không tải được ranh giới hành chính (HTTP ${remoteRes.status})`;
             }
           } catch (remoteErr: any) {
-            console.warn('Remote GeoJSON load failed:', remoteErr);
+            console.warn('Remote GeoJSON invalid or unavailable:', remoteErr);
             lastErrorMsg = remoteErr?.message || '';
+            data = null;
           }
         }
 
@@ -444,15 +494,9 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
           throw new Error(lastErrorMsg || 'Không tìm thấy dữ liệu ranh giới 34 tỉnh/thành.');
         }
 
-        const namedFeatures = data.features.filter(feature => 
-          feature?.type === 'Feature' && 
-          feature.geometry && 
-          (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') &&
-          getGeoJSONProvinceName((feature.properties || {}) as ProvinceProperties).length > 0
-        );
-
-        if (namedFeatures.length === 0) {
-          throw new Error('Dữ liệu bản đồ thiếu tên hoặc hình học hợp lệ của tỉnh/thành.');
+        // The source validator has already filtered malformed and unnamed features.
+        if (data.features.length !== 34) {
+          throw new Error('Dữ liệu bản đồ phải có đúng 34 đơn vị cấp tỉnh hợp lệ.');
         }
 
         if (isMounted) {
@@ -818,9 +862,9 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
     // Filter units based on zoom level to eliminate label collisions in dense regions:
     // At zoom < 7: only display 6 Centrally Governed Cities (Hà Nội, Hải Phòng, Huế, Đà Nẵng, TP.HCM, Cần Thơ)
     // At zoom >= 7: display all 34 units
-    const unitsToShow = currentZoom < 7 
-      ? VIETNAM_34_ADMINISTRATIVE_UNITS.filter(u => u.type === 'thanh_pho_tw')
-      : VIETNAM_34_ADMINISTRATIVE_UNITS;
+    // Keep labels off the national overview: heritage clusters already summarize this scale.
+    // Show all province labels only after the user zooms in enough to read them.
+    const unitsToShow = currentZoom < 7.5 ? [] : VIETNAM_34_ADMINISTRATIVE_UNITS;
 
     unitsToShow.forEach((unit) => {
       const displayName = unit.shortName;
