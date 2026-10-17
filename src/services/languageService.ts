@@ -1452,6 +1452,767 @@ export const PHRASE_TRANSLATIONS: Record<string, Record<string, string>> = {
     ko: '© 2026 HERITAGEAI. 베트남 문화유산의 자부심.',
     zh: '© 2026 越南之魂 HERITAGEAI. 传承华夏与越裳文化之美。'
   },
+  'profile.badgesTab': {
+    vi: 'Bảng Danh Hiệu',
+    en: 'Badges',
+    fr: 'Titres & Badges',
+    ja: 'バッジ＆称号',
+    ko: '칭호 & 배지',
+    zh: '成就与勋章'
+  },
+  'profile.infoTab': {
+    vi: 'Hồ Sơ & Thống Kê',
+    en: 'Profile & Stats',
+    fr: 'Profil & Stats',
+    ja: 'プロフィール＆統計',
+    ko: '프로필 & 통계',
+    zh: '个人档案与统计'
+  },
+  'profile.historyTab': {
+    vi: 'Lịch Sử',
+    en: 'History',
+    fr: 'Historique',
+    ja: '履歴',
+    ko: '기록',
+    zh: '历史足迹'
+  },
+  'profile.securityTab': {
+    vi: 'Bảo Mật',
+    en: 'Security',
+    fr: 'Sécurité',
+    ja: 'セキュリティ',
+    ko: '보안',
+    zh: '账号安全'
+  },
+  'profile.visitor': {
+    vi: 'Khách tham quan',
+    en: 'Visitor',
+    fr: 'Visiteur',
+    ja: '訪問者',
+    ko: '방문객',
+    zh: '游客'
+  },
+  'profile.badgeCollection': {
+    vi: 'Bộ Sưu Tập Huy Hiệu & Danh Hiệu Di Sản',
+    en: 'Heritage Badge & Title Collection',
+    fr: 'Collection de Badges & Titres de Patrimoine',
+    ja: '文化遺産バッジ＆称号コレクション',
+    ko: '문화유산 배지 & 칭호 컬렉션',
+    zh: '文化遗产勋章与成就陈列馆'
+  },
+  'profile.badgeSub': {
+    vi: 'Hoàn thành các hoạt động khám phá, nhận diện và học tập để mở khóa huy hiệu vinh danh.',
+    en: 'Complete exploration, recognition, and learning activities to unlock honorary badges.',
+    fr: 'Complétez les activités d\'exploration, de reconnaissance et d\'apprentissage pour débloquer des badges honorifiques.',
+    ja: '探索、画像認識、学習アクティビティを完了して、名誉あるバッジをアンロック。',
+    ko: '탐험, 인식, 학습 활동을 완료하고 명예로운 배지를 잠금 해제하세요.',
+    zh: '完成探索、图文识别与文化问答学习活动，即可解锁专属荣誉勋章。'
+  },
+  'profile.completion': {
+    vi: 'Độ hoàn thiện:',
+    en: 'Completion:',
+    fr: 'Complétion :',
+    ja: '達成率：',
+    ko: '달성률:',
+    zh: '完成度：'
+  },
+  'profile.achieved': {
+    vi: 'Đã đạt được',
+    en: 'Achieved',
+    fr: 'Obtenu',
+    ja: '獲得済み',
+    ko: '획득 완료',
+    zh: '已达成'
+  },
+  'profile.locked': {
+    vi: 'Chưa mở khóa',
+    en: 'Locked',
+    fr: 'Verrouillé',
+    ja: '未ロック',
+    ko: '잠김',
+    zh: '未解锁'
+  },
+  'profile.heritageRank': {
+    vi: 'Cấp bậc Di sản:',
+    en: 'Heritage Rank:',
+    fr: 'Rang de Patrimoine :',
+    ja: 'ヘリテージランク：',
+    ko: '문화유산 등급:',
+    zh: '遗产等级：'
+  },
+  'profile.culturalXP': {
+    vi: 'Điểm Văn Hóa (XP)',
+    en: 'Cultural XP',
+    fr: 'Points XP Culturels',
+    ja: '文化XPポイント',
+    ko: '문화 XP 포인트',
+    zh: '文化积分 (XP)'
+  },
+  'profile.favHeritages': {
+    vi: 'Di sản yêu thích',
+    en: 'Favorite Heritages',
+    fr: 'Patrimoines favoris',
+    ja: 'お気に入り遺産',
+    ko: '즐겨찾는 문화유산',
+    zh: '收藏的遗迹'
+  },
+  'profile.aiRecognitions': {
+    vi: 'Lần nhận diện AI',
+    en: 'AI Recognitions',
+    fr: 'Reconnaissances IA',
+    ja: 'AI認識回数',
+    ko: 'AI 인식 횟수',
+    zh: 'AI识别次数'
+  },
+  'profile.culturalQuiz': {
+    vi: 'Quiz văn hóa',
+    en: 'Cultural Quizzes',
+    fr: 'Quiz culturels',
+    ja: '文化クイズ',
+    ko: '문화 퀴즈',
+    zh: '文化问答'
+  },
+  'profile.familyMemories': {
+    vi: 'Ký ức gia đình',
+    en: 'Family Memories',
+    fr: 'Souvenirs familiaux',
+    ja: 'ファミリーメモリー',
+    ko: '가족 기억',
+    zh: '家族记忆'
+  },
+  'profile.personalDetails': {
+    vi: 'Chi Tiết Hồ Sơ Cá Nhân',
+    en: 'Personal Profile Details',
+    fr: 'Détails du Profil Personnel',
+    ja: '個人プロファイル詳細',
+    ko: '개인 프로필 상세 정보',
+    zh: '个人档案详情'
+  },
+  'profile.editProfile': {
+    vi: 'Chỉnh sửa hồ sơ',
+    en: 'Edit Profile',
+    fr: 'Modifier le profil',
+    ja: 'プロフィール編集',
+    ko: '프로필 수정',
+    zh: '编辑个人档案'
+  },
+  'profile.cancelEdit': {
+    vi: 'Hủy chỉnh sửa',
+    en: 'Cancel',
+    fr: 'Annuler',
+    ja: 'キャンセル',
+    ko: '취소',
+    zh: '取消编辑'
+  },
+  'profile.displayNameLabel': {
+    vi: 'Họ và Tên Hiển Thị:',
+    en: 'Display Name:',
+    fr: 'Nom d\'affichage :',
+    ja: '表示名：',
+    ko: '표시 이름:',
+    zh: '显示昵称：'
+  },
+  'profile.cityLabel': {
+    vi: 'Tỉnh / Thành Phố Quê Hương:',
+    en: 'Hometown / Province:',
+    fr: 'Ville / Province d\'origine :',
+    ja: '出身地・省：',
+    ko: '고향 / 시·도:',
+    zh: '家乡省市：'
+  },
+  'profile.userRoleLabel': {
+    vi: 'Vai Trò Người Dùng:',
+    en: 'User Role:',
+    fr: 'Rôle d\'utilisateur :',
+    ja: 'ユーザーロール：',
+    ko: '사용자 역할:',
+    zh: '用户身份：'
+  },
+  'profile.saveChanges': {
+    vi: 'Lưu thay đổi',
+    en: 'Save Changes',
+    fr: 'Enregistrer les modifications',
+    ja: '変更を保存',
+    ko: '변경사항 저장',
+    zh: '保存修改'
+  },
+  'profile.changePasswordTitle': {
+    vi: 'Đổi mật khẩu bảo mật tài khoản',
+    en: 'Change Account Password',
+    fr: 'Changer le mot de passe du compte',
+    ja: 'アカウントパスワードの変更',
+    ko: '계정 비밀번호 변경',
+    zh: '修改账户登录密码'
+  },
+  'profile.currentPassword': {
+    vi: 'Mật khẩu hiện tại:',
+    en: 'Current Password:',
+    fr: 'Mot de passe actuel :',
+    ja: '現在のパスワード：',
+    ko: '현재 비밀번호:',
+    zh: '当前密码：'
+  },
+  'profile.newPassword': {
+    vi: 'Mật khẩu mới (ít nhất 6 ký tự):',
+    en: 'New Password (at least 6 chars):',
+    fr: 'Nouveau mot de passe (6 car. min) :',
+    ja: '新しいパスワード（6文字以上）：',
+    ko: '새 비밀번호 (6자 이상):',
+    zh: '新密码（至少6个字符）：'
+  },
+  'profile.confirmPassword': {
+    vi: 'Xác nhận mật khẩu mới:',
+    en: 'Confirm New Password:',
+    fr: 'Confirmer le nouveau mot de passe :',
+    ja: '新しいパスワードの確認：',
+    ko: '새 비밀번호 확인:',
+    zh: '确认新密码：'
+  },
+  'profile.updatePasswordBtn': {
+    vi: 'Cập nhật mật khẩu',
+    en: 'Update Password',
+    fr: 'Mettre à jour le mot de passe',
+    ja: 'パスワードを更新',
+    ko: '비밀번호 업데이트',
+    zh: '更新密码'
+  },
+  'profile.activityLog': {
+    vi: 'Nhật ký hoạt động & Thao tác',
+    en: 'Activity & Action Log',
+    fr: 'Journal d\'activité',
+    ja: 'アクティビティ＆操作履歴',
+    ko: '활동 및 작업 로그',
+    zh: '活动轨迹与操作日志'
+  },
+  'profile.clearHistory': {
+    vi: 'Xóa lịch sử',
+    en: 'Clear History',
+    fr: 'Effacer l\'historique',
+    ja: '履歴をクリア',
+    ko: '기록 지우기',
+    zh: '清空历史'
+  },
+  'profile.filterAll': {
+    vi: 'Tất cả',
+    en: 'All',
+    fr: 'Tout',
+    ja: 'すべて',
+    ko: '전체',
+    zh: '全部'
+  },
+  'community.badge': {
+    vi: 'Kho Dữ Liệu Văn Hóa Mở Cho Cộng Đồng',
+    en: 'Open Community Cultural Data Repository',
+    fr: 'Répertoire de Données Culturelles Ouvert',
+    ja: 'オープン・コミュニティ文化データリポジトリ',
+    ko: '오픈 커뮤니티 문화 데이터 저장소',
+    zh: '开放式社区文化数据宝库'
+  },
+  'community.heading': {
+    vi: 'Chung Tay Đóng Góp Tri Thức Di Sản',
+    en: 'Together Contributing Heritage Knowledge',
+    fr: 'Contribuer ensemble au savoir du patrimoine',
+    ja: 'みんなで育む文化遺産の知見',
+    ko: '함께 기여하는 문화유산 지식',
+    zh: '携手共建遗产文化知识库'
+  },
+  'community.desc': {
+    vi: 'Mỗi câu chuyện truyền khẩu, một công thức nấu ăn cổ hay một bức ảnh di tích xưa từ bạn đều là mảnh ghép vô giá cho kho tàng văn hóa Việt Nam.',
+    en: 'Every oral story, ancient recipe, or historic photo from you is an invaluable piece for Vietnam\'s cultural treasure trove.',
+    fr: 'Chaque histoire orale, recette ancienne ou photo historique est une pièce inestimable pour le trésor culturel du Vietnam.',
+    ja: '語り継がれる物語、古いレシピ、歴史ある写真のすべてが、ベトナムの文化遺産を彩るかけがえのないピースです。',
+    ko: '구전 이야기, 고대의 조리법, 혹은 오래된 유적 사진 등 여러분의 모든 기여는 베트남 문화 유산의 소중한 조각이 됩니다.',
+    zh: '每一则口耳相传的故事、每一道古老食谱或一张历史古迹照片，都是构筑越南灿烂文化宝库不可或缺的珍贵拼图。'
+  },
+  'community.submitNew': {
+    vi: 'Gửi Đóng Góp Tư Liệu Mới',
+    en: 'Submit New Contribution',
+    fr: 'Soumettre une contribution',
+    ja: '新しい資料を投稿する',
+    ko: '새 자료 기여하기',
+    zh: '提交新资料投稿'
+  },
+  'community.closeForm': {
+    vi: 'Đóng form đóng góp',
+    en: 'Close Contribution Form',
+    fr: 'Fermer le formulaire',
+    ja: '投稿フォームを閉じる',
+    ko: '기여 폼 닫기',
+    zh: '关闭投稿表单'
+  },
+  'community.formTitle': {
+    vi: 'Phiếu Đóng Góp Tư Liệu Văn Hóa',
+    en: 'Cultural Material Contribution Form',
+    fr: 'Formulaire de Contribution Culturelle',
+    ja: '文化資料投稿フォーム',
+    ko: '문화 자료 기여 양식',
+    zh: '文化资料贡献申请表'
+  },
+  'community.formSub': {
+    vi: 'Thông tin sẽ được đối chiếu và kiểm duyệt trước khi đưa vào kho dữ liệu chính thức.',
+    en: 'Information will be verified and moderated before entering the official database.',
+    fr: 'Les informations seront vérifiées et modérées avant d\'entrer dans la base officielle.',
+    ja: '情報は公式データベースに登録される前に検証・モデレーションされます。',
+    ko: '제출된 정보는 공식 데이터베이스에 등록되기 전에 검증 및 검토를 거칩니다.',
+    zh: '提交的信息将在审核验证后收录至官方数据库。'
+  },
+  'community.contributorName': {
+    vi: 'Tên người đóng góp:',
+    en: 'Contributor Name:',
+    fr: 'Nom du contributeur :',
+    ja: '貢献者名：',
+    ko: '기여자 이름:',
+    zh: '贡献者姓名：'
+  },
+  'community.location': {
+    vi: 'Địa phương / Tỉnh thành:',
+    en: 'Location / Province:',
+    fr: 'Lieu / Province :',
+    ja: '地域・省：',
+    ko: '지역 / 시·도:',
+    zh: '所属地区/省市：'
+  },
+  'community.category': {
+    vi: 'Chủ đề đóng góp:',
+    en: 'Contribution Category:',
+    fr: 'Catégorie de contribution :',
+    ja: '投稿カテゴリ：',
+    ko: '기여 분야:',
+    zh: '投稿主题分类：'
+  },
+  'community.cat1': {
+    vi: 'Huyền tích & Phong tục dân gian',
+    en: 'Folklore & Folk Customs',
+    fr: 'Légendes & Coutumes Populaires',
+    ja: '伝承・民俗風習',
+    ko: '설화 및 민속 풍습',
+    zh: '民间传说与民俗风情'
+  },
+  'community.cat2': {
+    vi: 'Di tích / Công trình chưa được ghi danh',
+    en: 'Unlisted Monuments / Sites',
+    fr: 'Monuments / Sites non répertoriés',
+    ja: '未登録の史跡・建築物',
+    ko: '미등록 유적 및 건축물',
+    zh: '未登记的历史古迹/建筑'
+  },
+  'community.cat3': {
+    vi: 'Món ăn truyền thống / Công thức cổ',
+    en: 'Traditional Cuisine / Ancient Recipes',
+    fr: 'Cuisine traditionnelle / Recettes anciennes',
+    ja: '伝統料理・古来のレシピ',
+    ko: '전통 음식 / 고대 조리법',
+    zh: '传统风味/古法菜谱'
+  },
+  'community.cat4': {
+    vi: 'Làng nghề thủ công gia truyền',
+    en: 'Traditional Craft Villages',
+    fr: 'Villages artisanaux traditionnels',
+    ja: '伝統工芸の村',
+    ko: '전통 공예 마을',
+    zh: '传统手工艺村'
+  },
+  'community.cat5': {
+    vi: 'Ảnh tư liệu lịch sử',
+    en: 'Historical Archive Photos',
+    fr: 'Photos d\'archives historiques',
+    ja: '歴史的アーカイブ写真',
+    ko: '역사 아카이브 사진',
+    zh: '历史档案照片'
+  },
+  'community.sourceRef': {
+    vi: 'Nguồn tư liệu / Nhân chứng:',
+    en: 'Source Reference / Witness:',
+    fr: 'Référence source / Témoin :',
+    ja: '資料出典・証言者：',
+    ko: '출처 참고 / 증언자:',
+    zh: '资料来源/知情人：'
+  },
+  'community.titleLabel': {
+    vi: 'Tiêu đề tư liệu / Câu chuyện:',
+    en: 'Material / Story Title:',
+    fr: 'Titre de l\'histoire :',
+    ja: '資料・ストーリータイトル：',
+    ko: '자료 / 이야기 제목:',
+    zh: '资料/故事标题：'
+  },
+  'community.contentLabel': {
+    vi: 'Nội dung chi tiết tư liệu:',
+    en: 'Detailed Content:',
+    fr: 'Contenu détaillé :',
+    ja: '詳細内容：',
+    ko: '상세 내용:',
+    zh: '详细内容描述：'
+  },
+  'community.imageUrlLabel': {
+    vi: 'Đường dẫn hình ảnh (Ảnh thực tế/Tư liệu):',
+    en: 'Image URL (Real photo / Archive):',
+    fr: 'URL de l\'image (Photo réelle / Archive) :',
+    ja: '画像URL（実写・資料写真）：',
+    ko: '이미지 URL (실제 사진 / 아카이브):',
+    zh: '图片链接（实景/历史资料）：'
+  },
+  'community.terms': {
+    vi: 'Tôi cam kết thông tin cung cấp chính xác, không vi phạm bản quyền hay thuần phong mỹ tục và đồng ý đóng góp cho kho tri thức mở Hồn Đất Việt.',
+    en: 'I commit that the provided information is accurate, respects copyrights and cultural standards, and agree to contribute to the HeritageAI open knowledge base.',
+    fr: 'Je m\'engage à ce que les informations fournies soient exactes et respectueuses, et j\'accepte de contribuer à la base de connaissances ouverte.',
+    ja: '提供する情報が正確であり、著作権や公序良俗に違反しないことを誓約し、オープン知識ベースへの貢献に同意します。',
+    ko: '제공된 정보가 정확하며 저작권 및 미풍양속을 위반하지 않음을 서약하고 오픈 지식 베이스 기여에 동의합니다.',
+    zh: '我承诺所提供的信息真实准确、不侵犯版权及公序良俗，并同意将其贡献给越南文化遗产开放知识库。'
+  },
+  'community.submitBtn': {
+    vi: 'Gửi Tư Liệu Để Kiểm Định',
+    en: 'Submit Material for Verification',
+    fr: 'Soumettre pour vérification',
+    ja: '検証用に資料を送信',
+    ko: '검증을 위해 자료 제출',
+    zh: '提交资料等待审核验证'
+  },
+  'community.submitSuccess': {
+    vi: 'Đã gửi thành công! Cảm ơn đóng góp của bạn.',
+    en: 'Submitted successfully! Thank you for your contribution.',
+    fr: 'Soumis avec succès ! Merci pour votre contribution.',
+    ja: '送信成功！ご貢献ありがとうございます。',
+    ko: '성공적으로 제출되었습니다! 기여해주셔서 감사합니다.',
+    zh: '提交成功！感谢您的热忱贡献。'
+  },
+  'community.feedHeader': {
+    vi: 'Các Đóng Góp Mới Từ Cộng Đồng',
+    en: 'Latest Community Contributions',
+    fr: 'Dernières contributions de la communauté',
+    ja: 'コミュニティからの最新の投稿',
+    ko: '최신 커뮤니티 기여작',
+    zh: '最新社区贡献投稿'
+  },
+  'community.verified': {
+    vi: 'Đã kiểm duyệt & Xác thực nguồn gốc',
+    en: 'Moderated & Verified Source',
+    fr: 'Modéré & Source vérifiée',
+    ja: 'モデレーション済み・出典確認済み',
+    ko: '검토 및 출처 인증됨',
+    zh: '已通过审核与来源验证'
+  },
+  'community.authorPrefix': {
+    vi: 'Người đóng góp:',
+    en: 'Contributor:',
+    fr: 'Contributeur :',
+    ja: '貢献者：',
+    ko: '기여자:',
+    zh: '贡献者：'
+  },
+  'community.verifiedBadge': {
+    vi: 'Đã kiểm định',
+    en: 'Verified',
+    fr: 'Vérifié',
+    ja: '検証済み',
+    ko: '인증됨',
+    zh: '已验证'
+  },
+  'community.pendingBadge': {
+    vi: 'Đang chờ duyệt',
+    en: 'Pending Review',
+    fr: 'En attente',
+    ja: '審査待ち',
+    ko: '승인 대기 중',
+    zh: '待审核'
+  },
+  'profile.noActivity': {
+    vi: 'Không tìm thấy nhật ký hoạt động nào.',
+    en: 'No activity logs found.',
+    fr: 'Aucun journal d\'activité trouvé.',
+    ja: 'アクティビティ履歴が見つかりません。',
+    ko: '활동 기록이 없습니다.',
+    zh: '未找到活动日志。'
+  },
+  'Nhà Thám Hiểm Sơ Cấp': {
+    en: 'Junior Explorer',
+    fr: 'Explorateur Junior',
+    ja: '初級探検家',
+    ko: '초급 탐험가',
+    zh: '初级探险家'
+  },
+  'Bắt đầu bước chân vào hành trình khám phá di sản 3 miền non sông.': {
+    en: 'Begin your journey exploring heritage across the three regions of Vietnam.',
+    fr: 'Commencez votre voyage d\'exploration du patrimoine dans les trois régions du Vietnam.',
+    ja: 'ベトナム3地域の文化遺産を巡る旅の第一歩を踏み出そう。',
+    ko: '베트남 3대 지역의 문화유산 탐험 여정을 시작하세요.',
+    zh: '开启探索越南三地自然与人文遗产的精彩旅程。'
+  },
+  'Tạo tài khoản hoặc đăng nhập thành viên': {
+    en: 'Create an account or sign in as a member',
+    fr: 'Créez un compte ou connectez-vous',
+    ja: 'アカウント作成またはログイン',
+    ko: '계정 생성 또는 회원 로그인',
+    zh: '注册账号或登录会员'
+  },
+  'Sứ Giả Cố Đô': {
+    en: 'Ancient Capital Envoy',
+    fr: 'Émissaire de l\'Ancienne Capitale',
+    ja: '古都の使者',
+    ko: '고도(古都)의 사신',
+    zh: '古都使者'
+  },
+  'Tìm hiểu sâu về Đại Nội Huế, nhã nhạc cung đình và quần thể di tích triều Nguyễn.': {
+    en: 'Deep dive into Hue Imperial Citadel, Royal Court Music and Nguyen Dynasty monuments.',
+    fr: 'Explorez en profondeur la citadelle de Hué, la musique de la cour et les monuments des Nguyen.',
+    ja: 'フエ王宮、宮廷雅楽、グエン朝の歴史的建造物を深く探求。',
+    ko: '후에 왕궁, 궁중음악 및 응우옌 왕조 유적군을 깊이 있게 탐구하세요.',
+    zh: '深入了解顺化皇城、宫廷雅乐及阮朝历史古迹群。'
+  },
+  'Nghe kể chuyện hoặc tìm hiểu di sản Huế': {
+    en: 'Listen to stories or learn about Hue heritage',
+    fr: 'Écoutez des histoires ou découvrez le patrimoine de Hué',
+    ja: 'フエの物語を聴く、または遺産を学ぶ',
+    ko: '후에 이야기 청취 또는 유산 학습',
+    zh: '收听顺化典故或了解顺化遗产'
+  },
+  'Nghe kể chuyện Huế': {
+    en: 'Listen to Hue Stories',
+    fr: 'Écouter les récits de Hué',
+    ja: 'フエの物語を聞く',
+    ko: '후에 이야기 듣기',
+    zh: '收听顺化故事'
+  },
+  'Nhiếp Ảnh Gia Di Sản AI': {
+    en: 'AI Heritage Photographer',
+    fr: 'Photographe de Patrimoine IA',
+    ja: 'AIヘリテージフォトグラファー',
+    ko: 'AI 문화유산 사진작가',
+    zh: 'AI 遗产摄影师'
+  },
+  'Sử dụng AI nhận diện thị giác để tra cứu di tích, cổ vật, trang phục truyền thống.': {
+    en: 'Use AI visual recognition to identify monuments, antiques, and traditional costumes.',
+    fr: 'Utilisez la vision IA pour identifier monuments, antiquités et costumes traditionnels.',
+    ja: 'AI視覚認識を使用して、史跡、古美術品、伝統衣装を識別。',
+    ko: 'AI 시각 인식을 사용하여 유적, 골동품, 전통 의상을 식별하세요.',
+    zh: '利用 AI 视觉识别技术鉴别古迹、文物古董与传统服饰。'
+  },
+  'Thực hiện ít nhất 3 lần nhận diện ảnh bằng AI': {
+    en: 'Perform at least 3 AI image recognitions',
+    fr: 'Effectuez au moins 3 reconnaissances d\'images par IA',
+    ja: 'AI画像認識を3回以上実行',
+    ko: '최소 3회 이상 AI 이미지 인식 실행',
+    zh: '完成至少3次 AI 图像识别'
+  },
+  'Nhận diện ảnh ngay': {
+    en: 'Recognize Photo Now',
+    fr: 'Reconnaître une photo',
+    ja: '今すぐ画像認識',
+    ko: '지금 사진 인식하기',
+    zh: '立即拍照识别'
+  },
+  'Người Kể Chuyện Di Sản': {
+    en: 'Heritage Storyteller',
+    fr: 'Conteur de Patrimoine',
+    ja: 'ヘリテージ・ストーリーテラー',
+    ko: '문화유산 이야기꾼',
+    zh: '文化遗产说书人'
+  },
+  'Nghe AI tái hiện những câu chuyện di sản, huyền tích và chính sử Việt Nam.': {
+    en: 'Listen to AI recreate Vietnamese heritage stories, legends, and official histories.',
+    fr: 'Écoutez l\'IA recréer des histoires du patrimoine, des légendes et l\'histoire du Vietnam.',
+    ja: 'AIが再現するベトナムの遺産ストーリー、伝説、歴史を聴く。',
+    ko: 'AI가 재현하는 베트남의 유산 이야기, 전설, 정사(正史)를 들어보세요.',
+    zh: '聆听 AI 演绎的越南历史传说与官方正史典故。'
+  },
+  'Nghe ít nhất 1 câu chuyện di sản bằng AI': {
+    en: 'Listen to at least 1 AI heritage story',
+    fr: 'Écoutez au moins 1 récit de patrimoine par IA',
+    ja: 'AI遺産ストーリーを1つ以上聴く',
+    ko: '최소 1개의 AI 유산 이야기 청취',
+    zh: '收听至少 1 个 AI 历史故事'
+  },
+  'Nghe kể chuyện': {
+    en: 'Listen to Stories',
+    fr: 'Écouter les récits',
+    ja: 'ストーリーを聴く',
+    ko: '이야기 듣기',
+    zh: '收听故事'
+  },
+  'Sử Học Gia Đất Việt': {
+    en: 'Vietnamese Historian',
+    fr: 'Historien du Vietnam',
+    ja: 'ベトナム歴史家',
+    ko: '베트남 역사학자',
+    zh: '越南历史学者'
+  },
+  'Chinh phục các câu đố lịch sử văn hóa và dòng thời gian các triều đại.': {
+    en: 'Conquer cultural-historical quizzes and dynastic timelines.',
+    fr: 'Conquérez les quiz historico-culturels et la chronologie des dynasties.',
+    ja: '文化歴史クイズや王朝のタイムラインを制覇しよう。',
+    ko: '문화 역사 퀴즈와 왕조 연대기를 정복하세요.',
+    zh: '挑战文化历史问答与历代王朝时间线。'
+  },
+  'Hoàn thành ít nhất 3 bộ câu hỏi trắc nghiệm văn hóa': {
+    en: 'Complete at least 3 cultural quiz sets',
+    fr: 'Complétez au moins 3 séries de quiz culturels',
+    ja: '文化クイズセットを3つ以上完了',
+    ko: '최소 3개의 문화 퀴즈 세트 완료',
+    zh: '完成至少 3 套文化问答测试'
+  },
+  'Làm Quiz văn hóa': {
+    en: 'Take Cultural Quiz',
+    fr: 'Faire le Quiz culturel',
+    ja: '文化クイズに挑戦',
+    ko: '문화 퀴즈 풀기',
+    zh: '参与文化问答'
+  },
+  'Kiến Trúc Sư Hành Trình': {
+    en: 'Journey Architect',
+    fr: 'Architecte de Voyage',
+    ja: 'ジャーニー・アーキテクト',
+    ko: '여행 건축가',
+    zh: '行程架构师'
+  },
+  'Tạo lập lịch trình khám phá di sản thông minh và tối ưu thời gian di chuyển.': {
+    en: 'Create smart heritage exploration itineraries with optimized travel times.',
+    fr: 'Créez des itinéraires d\'exploration intelligents avec des temps de trajet optimisés.',
+    ja: '移動時間を最適化したスマートな文化遺産ツアー計画を作成。',
+    ko: '이동 시간이 최적화된 스마트 문화유산 탐험 일정을 만드세요.',
+    zh: '智能规划文化探索行程，优化出行时间。'
+  },
+  'Lập 1 lịch trình tham quan thông minh': {
+    en: 'Create 1 smart sightseeing itinerary',
+    fr: 'Créer 1 itinéraire touristique intelligent',
+    ja: 'スマート観光日程を1つ作成',
+    ko: '스마트 관광 일정 1개 생성',
+    zh: '创建 1 个智能观光行程'
+  },
+
+  'Thực Thần Bản Địa': {
+    en: 'Local Foodie',
+    fr: 'Gourmet Local',
+    ja: 'ローカルグルメエキスパート',
+    ko: '로컬 미식가',
+    zh: '地道美食家'
+  },
+  'Khám phá quán ăn dân dã, món ngon gia truyền xung quanh các quần thể di sản.': {
+    en: 'Discover rustic eateries and traditional family delicacies around heritage complexes.',
+    fr: 'Découvrez des restaurants rustiques et des délices traditionnels autour des sites patrimoniaux.',
+    ja: '世界遺産周辺の郷土料理や伝統的な名店を発見しよう。',
+    ko: '문화유산 단지 주변의 향토 음식점과 전통 가전(家傳) 맛집을 발견하세요.',
+    zh: '探索世界遗产周边的地道小吃与祖传特色美食。'
+  },
+  'Tìm kiếm ẩm thực hoặc lưu di sản yêu thích': {
+    en: 'Search food or save favorite heritage',
+    fr: 'Recherchez de la gastronomie ou enregistrez des favoris',
+    ja: 'グルメ検索またはお気に入り遺産の保存',
+    ko: '음식 검색 또는 즐겨찾는 유산 저장',
+    zh: '搜索地道美食或收藏心仪遗迹'
+  },
+  'Xem quán ngon quanh di sản': {
+    en: 'Explore Nearby Food',
+    fr: 'Explorer la gastronomie',
+    ja: '周辺のグルメを見る',
+    ko: '주변 맛집 보기',
+    zh: '查看周边美食'
+  },
+  'Đại Sứ Di Sản Quốc Gia': {
+    en: 'National Heritage Ambassador',
+    fr: 'Ambassadeur du Patrimoine National',
+    ja: '国家文化遺産アンバサダー',
+    ko: '국가 문화유산 대사',
+    zh: '国家文化遗产大使'
+  },
+  'Danh hiệu tối cao vinh danh người thấu hiểu sâu sắc và tích cực lan tỏa di sản văn hóa Việt Nam.': {
+    en: 'Supreme title honoring those with deep understanding and active dissemination of Vietnamese culture.',
+    fr: 'Titre suprême honorant ceux qui comprennent profondément et diffusent la culture vietnamienne.',
+    ja: 'ベトナム文化遺産への深い理解と積極的な普及活動を讃える最高称号。',
+    ko: '베트남 문화유산에 대한 깊은 이해와 적극적인 전파를 기리는 최고 칭호.',
+    zh: '至高荣耀勋章，表彰对越南文化遗产有深刻理解并积极传播的杰出使者。'
+  },
+  'Đạt từ 500 điểm XP văn hóa trở lên': {
+    en: 'Reach 500+ cultural XP points',
+    fr: 'Atteindre 500+ points XP culturels',
+    ja: '文化XPポイント500以上達成',
+    ko: '문화 XP 포인트 500 이상 달성',
+    zh: '累积文化积分达到 500 XP 以上'
+  },
+  'Tích lũy XP': {
+    en: 'Earn XP',
+    fr: 'Gagner des XP',
+    ja: 'XPを貯める',
+    ko: 'XP 적립하기',
+    zh: '积累积分'
+  },
+  'Khám phá': {
+    en: 'Exploration',
+    fr: 'Exploration',
+    ja: '探索',
+    ko: '탐험',
+    zh: '探索'
+  },
+  'Di tích': {
+    en: 'Monuments',
+    fr: 'Monuments',
+    ja: '史跡',
+    ko: '유적',
+    zh: '古迹'
+  },
+  'Thị giác AI': {
+    en: 'AI Vision',
+    fr: 'Vision IA',
+    ja: 'AI視覚',
+    ko: 'AI 비전',
+    zh: 'AI视觉'
+  },
+  'Văn hóa': {
+    en: 'Culture',
+    fr: 'Culture',
+    ja: '文化',
+    ko: '문화',
+    zh: '文化'
+  },
+  'Học tập': {
+    en: 'Learning',
+    fr: 'Apprentissage',
+    ja: '学習',
+    ko: '학습',
+    zh: '学习'
+  },
+  'Du lịch': {
+    en: 'Travel',
+    fr: 'Voyage',
+    ja: '旅行',
+    ko: '여행',
+    zh: '旅游'
+  },
+  'Ẩm thực': {
+    en: 'Cuisine',
+    fr: 'Gastronomie',
+    ja: 'グルメ',
+    ko: '미식',
+    zh: '美食'
+  },
+  'Đặc biệt': {
+    en: 'Special',
+    fr: 'Spécial',
+    ja: 'スペシャル',
+    ko: '스페셜',
+    zh: '特级'
+  },
+  'Đã đạt được': {
+    en: 'Achieved',
+    fr: 'Obtenu',
+    ja: '獲得済み',
+    ko: '획득 완료',
+    zh: '已获得'
+  },
+
+  'Thành viên Di sản': {
+    en: 'Heritage Member',
+    fr: 'Membre du Patrimoine',
+    ja: 'ヘリテージメンバー',
+    ko: '문화유산 회원',
+    zh: '遗产会员'
+  },
+  'Nhà Khám Phá Trẻ': {
+    en: 'Young Explorer',
+    fr: 'Jeune Explorateur',
+    ja: 'ヤングエクスプローラー',
+    ko: '청소년 탐험가',
+    zh: '青年探险家'
+  },
   'Dữ liệu đối chiếu: Đại Việt Sử Ký Toàn Thư, UNESCO & Google Places': {
     en: 'Sources verified with Dai Viet Su Ky Toan Thu, UNESCO & Google Places',
     fr: 'Sources vérifiées avec Dai Viet Su Ky Toan Thu, UNESCO & Google Places',
@@ -1684,7 +2445,7 @@ export const PHRASE_TRANSLATIONS: Record<string, Record<string, string>> = {
   'Tổng cộng': { en: 'Total', fr: 'Total', ja: '合計', ko: '총', zh: '共计' },
   'địa điểm': { en: 'places', fr: 'lieux', ja: '箇所', ko: '곳', zh: '处地点' },
   'Tỉnh thành:': { en: 'Province:', fr: 'Province:', ja: '省・市：', ko: '성/시:', zh: '省市：' },
-  'Khám phá': { en: 'Explore', fr: 'Explorer', ja: '探索', ko: '탐험', zh: '探索' },
+
   'Đổi cảnh': { en: 'Change View', fr: 'Changer la vue', ja: '景色変更', ko: '배경 변경', zh: '更换背景' },
   'Ngắm ảnh': { en: 'View Image', fr: 'Voir l\'image', ja: '壁紙鑑賞', ko: '사진 감상', zh: '欣赏图片' },
   'Ảnh Nền Danh Thắng Việt Nam': {

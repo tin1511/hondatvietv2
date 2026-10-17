@@ -432,7 +432,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
       <div className="sticky top-16 z-30 bg-stone-900/95 backdrop-blur-md border border-stone-800 rounded-2xl p-2 shadow-2xl mb-6">
         <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
           <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar w-full sm:w-auto">
-            <button
+             <button
               id="tab-btn-badges"
               onClick={() => setActiveSubTab('badges')}
               className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
@@ -442,7 +442,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               }`}
             >
               <Award className="w-4 h-4" />
-              <span>Bảng Danh Hiệu</span>
+              <span>{languageService.t('profile.badgesTab', language, 'Bảng Danh Hiệu')}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                 activeSubTab === 'badges' ? 'bg-stone-950/20 text-stone-950' : 'bg-amber-500/20 text-amber-300'
               }`}>
@@ -460,7 +460,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               }`}
             >
               <User className="w-4 h-4" />
-              <span>Hồ Sơ & Thống Kê</span>
+              <span>{languageService.t('profile.infoTab', language, 'Hồ Sơ & Thống Kê')}</span>
             </button>
 
             <button
@@ -473,7 +473,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               }`}
             >
               <History className="w-4 h-4" />
-              <span>Lịch Sử</span>
+              <span>{languageService.t('profile.historyTab', language, 'Lịch Sử')}</span>
               <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-stone-800 text-stone-400">
                 {activities.length}
               </span>
@@ -489,7 +489,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               }`}
             >
               <KeyRound className="w-4 h-4" />
-              <span>{currentUser.isLoggedIn ? 'Bảo Mật' : 'Đăng Nhập'}</span>
+              <span>{currentUser.isLoggedIn ? languageService.t('profile.securityTab', language, 'Bảo Mật') : languageService.t('nav.login', language, 'Đăng Nhập')}</span>
             </button>
           </div>
 
@@ -532,15 +532,15 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
             <div>
               <h2 className="text-xl font-serif font-bold text-stone-100 flex items-center gap-2">
                 <Award className="w-5 h-5 text-amber-400" />
-                <span>Bộ Sưu Tập Huy Hiệu & Danh Hiệu Di Sản</span>
+                <span>{languageService.t('profile.badgeCollection', language, 'Bộ Sưu Tập Huy Hiệu & Danh Hiệu Di Sản')}</span>
               </h2>
               <p className="text-xs text-stone-400 mt-0.5">
-                Hoàn thành các hoạt động khám phá, nhận diện và học tập để mở khóa huy hiệu vinh danh.
+                {languageService.t('profile.badgeSub', language, 'Hoàn thành các hoạt động khám phá, nhận diện và học tập để mở khóa huy hiệu vinh danh.')}
               </p>
             </div>
 
             <div className="flex items-center gap-2 bg-stone-900 border border-stone-800 rounded-2xl px-3.5 py-1.5 text-xs text-stone-300">
-              <span>Độ hoàn thiện:</span>
+              <span>{languageService.t('profile.completion', language, 'Độ hoàn thiện:')}</span>
               <strong className="text-amber-400 font-serif text-sm">
                 {Math.round((unlockedBadgesCount / ALL_MILESTONE_BADGES.length) * 100)}%
               </strong>
@@ -563,11 +563,11 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                   {/* Badge Category Tag & Tier */}
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 px-2 py-0.5 rounded-md bg-stone-950 border border-stone-800">
-                      {badge.category}
+                      {languageService.t(badge.category, language, badge.category)}
                     </span>
 
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${badge.tierColor}`}>
-                      {badge.tier}
+                      {languageService.t(badge.tier, language, badge.tier)}
                     </span>
                   </div>
 
@@ -584,14 +584,14 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5">
                         <h3 className="font-serif font-bold text-stone-100 text-sm sm:text-base leading-tight">
-                          {badge.name}
+                          {languageService.t(badge.name, language, badge.name)}
                         </h3>
                         {progress.isUnlocked && (
                           <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
                         )}
                       </div>
                       <p className="text-xs text-stone-400 leading-relaxed">
-                        {badge.description}
+                        {languageService.t(badge.description, language, badge.description)}
                       </p>
                     </div>
                   </div>
@@ -599,7 +599,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                   {/* Unlock criteria & Progress */}
                   <div className="pt-3 border-t border-stone-800/80 space-y-2">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-stone-400">{badge.requirementText}</span>
+                      <span className="text-stone-400">{languageService.t(badge.requirementText, language, badge.requirementText)}</span>
                       <span className={`font-bold ${progress.isUnlocked ? 'text-amber-400' : 'text-stone-500'}`}>
                         {progress.current}/{progress.total}
                       </span>
@@ -620,11 +620,11 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                       {progress.isUnlocked ? (
                         <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
                           <Check className="w-3.5 h-3.5" />
-                          <span>Đã đạt được</span>
+                          <span>{languageService.t('profile.achieved', language, 'Đã đạt được')}</span>
                         </span>
                       ) : (
                         <span className="text-[11px] text-stone-500 font-medium">
-                          Chưa mở khóa
+                          {languageService.t('profile.locked', language, 'Chưa mở khóa')}
                         </span>
                       )}
 
@@ -632,7 +632,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                         onClick={() => onNavigateTab(badge.targetTab)}
                         className="text-[11px] px-3 py-1 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-300 font-semibold border border-stone-700 flex items-center gap-1 transition-all hover:scale-105 cursor-pointer"
                       >
-                        <span>{badge.ctaText}</span>
+                        <span>{languageService.t(badge.ctaText, language, badge.ctaText)}</span>
                         <ChevronRight className="w-3 h-3" />
                       </button>
                     </div>

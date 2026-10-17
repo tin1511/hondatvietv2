@@ -281,8 +281,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Desktop Primary Nav (All Items Visible in dedicated taskbar row) */}
-        <nav className="hidden xl:flex items-center gap-1.5 py-2 px-1 overflow-x-auto scrollbar-none border-t border-amber-900/20">
+        {/* Row 2: Primary Nav (All Items Visible in horizontally scrollable taskbar row for mobile & desktop) */}
+        <nav className="flex items-center gap-1.5 py-2 px-1 overflow-x-auto scrollbar-none border-t border-amber-900/20">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;

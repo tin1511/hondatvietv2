@@ -22,13 +22,16 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { storageService } from '../services/storageService';
+import { languageService } from '../services/languageService';
 import { CommunityContribution } from '../types';
 
 interface CommunityContributionModuleProps {
   language?: string;
 }
 
-export const CommunityContributionModule: React.FC<CommunityContributionModuleProps> = () => {
+export const CommunityContributionModule: React.FC<CommunityContributionModuleProps> = ({
+  language = 'vi'
+}) => {
   const [contributions, setContributions] = useState<CommunityContribution[]>([]);
   const [showForm, setShowForm] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState(() => storageService.getCurrentUser());
@@ -158,13 +161,13 @@ export const CommunityContributionModule: React.FC<CommunityContributionModulePr
       <div className="text-center max-w-3xl mx-auto mb-8">
         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold mb-3">
           <Users className="w-3.5 h-3.5" />
-          <span>Kho Dữ Liệu Văn Hóa Mở Cho Cộng Đồng</span>
+          <span>{languageService.t('community.badge', language, 'Kho Dữ Liệu Văn Hóa Mở Cho Cộng Đồng')}</span>
         </div>
         <h2 className="text-2xl sm:text-4xl font-serif font-bold text-stone-100">
-          Chung Tay Đóng Góp Tri Thức Di Sản
+          {languageService.t('community.heading', language, 'Chung Tay Đóng Góp Tri Thức Di Sản')}
         </h2>
         <p className="text-stone-300 text-xs sm:text-sm mt-2">
-          Mỗi câu chuyện truyền khẩu, một công thức nấu ăn cổ hay một bức ảnh di tích xưa từ bạn đều là mảnh ghép vô giá cho kho tàng văn hóa Việt Nam.
+          {languageService.t('community.desc', language, 'Mỗi câu chuyện truyền khẩu, một công thức nấu ăn cổ hay một bức ảnh di tích xưa từ bạn đều là mảnh ghép vô giá cho kho tàng văn hóa Việt Nam.')}
         </p>
       </div>
 
@@ -179,7 +182,7 @@ export const CommunityContributionModule: React.FC<CommunityContributionModulePr
             alt="Logo Hồn Đất Việt" 
             className="w-5 h-5 rounded-full object-cover border border-amber-950/40 shrink-0" 
           />
-          <span>{showForm ? 'Đóng form đóng góp' : 'Gửi Đóng Góp Tư Liệu Mới'}</span>
+          <span>{showForm ? languageService.t('community.closeForm', language, 'Đóng form đóng góp') : languageService.t('community.submitNew', language, 'Gửi Đóng Góp Tư Liệu Mới')}</span>
         </button>
       </div>
 
@@ -191,16 +194,16 @@ export const CommunityContributionModule: React.FC<CommunityContributionModulePr
         >
           <div className="border-b border-stone-800 pb-3">
             <h3 className="font-serif font-bold text-amber-200 text-lg">
-              Phiếu Đóng Góp Tư Liệu Văn Hóa
+              {languageService.t('community.formTitle', language, 'Phiếu Đóng Góp Tư Liệu Văn Hóa')}
             </h3>
             <p className="text-xs text-stone-400 mt-0.5">
-              Thông tin sẽ được đối chiếu và kiểm duyệt trước khi đưa vào kho dữ liệu chính thức.
+              {languageService.t('community.formSub', language, 'Thông tin sẽ được đối chiếu và kiểm duyệt trước khi đưa vào kho dữ liệu chính thức.')}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="block text-stone-300 mb-1 font-semibold">Tên người đóng góp:</label>
+              <label className="block text-stone-300 mb-1 font-semibold">{languageService.t('community.contributorName', language, 'Tên người đóng góp:')}</label>
               <input
                 type="text"
                 value={contributorName}
@@ -211,7 +214,7 @@ export const CommunityContributionModule: React.FC<CommunityContributionModulePr
             </div>
 
             <div>
-              <label className="block text-stone-300 mb-1 font-semibold">Địa phương / Tỉnh thành:</label>
+              <label className="block text-stone-300 mb-1 font-semibold">{languageService.t('community.location', language, 'Địa phương / Tỉnh thành:')}</label>
               <input
                 type="text"
                 value={location}
@@ -221,22 +224,22 @@ export const CommunityContributionModule: React.FC<CommunityContributionModulePr
             </div>
 
             <div>
-              <label className="block text-stone-300 mb-1 font-semibold">Chủ đề đóng góp:</label>
+              <label className="block text-stone-300 mb-1 font-semibold">{languageService.t('community.category', language, 'Chủ đề đóng góp:')}</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full bg-stone-950 border border-stone-700 rounded-xl px-3.5 py-2.5 text-stone-100 focus:outline-none focus:border-amber-500"
               >
-                <option value="custom_folklore">Huyền tích & Phong tục dân gian</option>
-                <option value="monument">Di tích / Công trình chưa được ghi danh</option>
-                <option value="recipe">Món ăn truyền thống / Công thức cổ</option>
-                <option value="craft">Làng nghề thủ công gia truyền</option>
-                <option value="photo_history">Ảnh tư liệu lịch sử</option>
+                <option value="custom_folklore">{languageService.t('community.cat1', language, 'Huyền tích & Phong tục dân gian')}</option>
+                <option value="monument">{languageService.t('community.cat2', language, 'Di tích / Công trình chưa được ghi danh')}</option>
+                <option value="recipe">{languageService.t('community.cat3', language, 'Món ăn truyền thống / Công thức cổ')}</option>
+                <option value="craft">{languageService.t('community.cat4', language, 'Làng nghề thủ công gia truyền')}</option>
+                <option value="photo_history">{languageService.t('community.cat5', language, 'Ảnh tư liệu lịch sử')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-stone-300 mb-1 font-semibold">Nguồn tư liệu / Nhân chứng:</label>
+              <label className="block text-stone-300 mb-1 font-semibold">{languageService.t('community.sourceRef', language, 'Nguồn tư liệu / Nhân chứng:')}</label>
               <input
                 type="text"
                 value={sourceReference}
@@ -248,7 +251,7 @@ export const CommunityContributionModule: React.FC<CommunityContributionModulePr
           </div>
 
           <div>
-            <label className="block text-xs text-stone-300 mb-1 font-semibold">Tiêu đề tư liệu / Câu chuyện:</label>
+            <label className="block text-xs text-stone-300 mb-1 font-semibold">{languageService.t('community.titleLabel', language, 'Tiêu đề tư liệu / Câu chuyện:')}</label>
             <input
               type="text"
               value={title}
@@ -260,7 +263,7 @@ export const CommunityContributionModule: React.FC<CommunityContributionModulePr
           </div>
 
           <div>
-            <label className="block text-xs text-stone-300 mb-1 font-semibold">Nội dung chi tiết tư liệu:</label>
+            <label className="block text-xs text-stone-300 mb-1 font-semibold">{languageService.t('community.contentLabel', language, 'Nội dung chi tiết tư liệu:')}</label>
             <textarea
               rows={4}
               value={content}
@@ -272,7 +275,7 @@ export const CommunityContributionModule: React.FC<CommunityContributionModulePr
           </div>
 
           <div>
-            <label className="block text-xs text-stone-300 mb-1 font-semibold">Đường dẫn hình ảnh (Ảnh thực tế/Tư liệu):</label>
+            <label className="block text-xs text-stone-300 mb-1 font-semibold">{languageService.t('community.imageUrlLabel', language, 'Đường dẫn hình ảnh (Ảnh thực tế/Tư liệu):')}</label>
             <input
               type="url"
               value={imageUrl}
@@ -291,7 +294,7 @@ export const CommunityContributionModule: React.FC<CommunityContributionModulePr
               required
             />
             <span>
-              Tôi cam kết thông tin cung cấp chính xác, không vi phạm bản quyền hay thuần phong mỹ tục và đồng ý đóng góp cho kho tri thức mở Hồn Đất Việt.
+              {languageService.t('community.terms', language, 'Tôi cam kết thông tin cung cấp chính xác, không vi phạm bản quyền hay thuần phong mỹ tục và đồng ý đóng góp cho kho tri thức mở Hồn Đất Việt.')}
             </span>
           </label>
 
@@ -304,12 +307,12 @@ export const CommunityContributionModule: React.FC<CommunityContributionModulePr
             {submitted ? (
               <>
                 <CheckCircle2 className="w-4 h-4 text-emerald-950" />
-                <span>Đã gửi thành công! Cảm ơn đóng góp của bạn.</span>
+                <span>{languageService.t('community.submitSuccess', language, 'Đã gửi thành công! Cảm ơn đóng góp của bạn.')}</span>
               </>
             ) : (
               <>
                 <Upload className="w-4 h-4" />
-                <span>Gửi Tư Liệu Để Kiểm Định</span>
+                <span>{languageService.t('community.submitBtn', language, 'Gửi Tư Liệu Để Kiểm Định')}</span>
               </>
             )}
           </button>
@@ -320,9 +323,9 @@ export const CommunityContributionModule: React.FC<CommunityContributionModulePr
       <div className="space-y-6">
         <div className="flex items-center justify-between border-b border-stone-800 pb-3">
           <h3 className="font-serif font-bold text-amber-100 text-lg sm:text-xl">
-            Các Đóng Góp Mới Từ Cộng Đồng ({contributions.length})
+            {languageService.t('community.feedHeader', language, 'Các Đóng Góp Mới Từ Cộng Đồng')} ({contributions.length})
           </h3>
-          <span className="text-xs text-stone-400">Đã kiểm duyệt & Xác thực nguồn gốc</span>
+          <span className="text-xs text-stone-400">{languageService.t('community.verified', language, 'Đã kiểm duyệt & Xác thực nguồn gốc')}</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -365,17 +368,17 @@ export const CommunityContributionModule: React.FC<CommunityContributionModulePr
                   <div className="p-5 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-stone-400">
-                        Người đóng góp: <strong className="text-stone-200">{item.contributorName || item.authorName}</strong>
+                        {languageService.t('community.authorPrefix', language, 'Người đóng góp:')} <strong className="text-stone-200">{item.contributorName || item.authorName}</strong>
                       </span>
                       {item.status === 'verified' || item.status === 'approved' ? (
                         <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                          Đã kiểm định
+                          {languageService.t('community.verifiedBadge', language, 'Đã kiểm định')}
                         </span>
                       ) : (
                         <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-500/30 font-bold flex items-center gap-1">
                           <Clock className="w-3 h-3 text-amber-400" />
-                          Đang chờ duyệt
+                          {languageService.t('community.pendingBadge', language, 'Đang chờ duyệt')}
                         </span>
                       )}
                     </div>
