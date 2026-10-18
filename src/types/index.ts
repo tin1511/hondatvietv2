@@ -170,8 +170,52 @@ export interface ItineraryTimeSlot {
   lat?: number;
   lng?: number;
   googleMapsUri?: string;
-  openingHoursNote?: string;
   tip?: string;
+  weatherHint?: string;
+}
+
+export interface DailyWeatherForecast {
+  date: string; // YYYY-MM-DD
+  dayOfWeek: string;
+  dayIndex?: number;
+  weatherCode: number;
+  conditionText: string;
+  conditionIcon: string;
+  tempMax: number;
+  tempMin: number;
+  precipitationSum: number;
+  precipitationProbability: number;
+  uvIndexMax: number;
+  windSpeedMax: number;
+  isRainy: boolean;
+  isHot: boolean;
+  isStormy: boolean;
+  activitySuggestionVi: string;
+  activitySuggestionEn: string;
+  warningNoticeVi?: string;
+  warningNoticeEn?: string;
+}
+
+export interface CityWeatherData {
+  cityName: string;
+  destinationKey: string;
+  regionName?: string;
+  latitude: number;
+  longitude: number;
+  current: {
+    temperature: number;
+    apparentTemperature: number;
+    weatherCode: number;
+    conditionText: string;
+    conditionIcon: string;
+    humidity: number;
+    windSpeed: number;
+    precipitation: number;
+    isDay: boolean;
+  };
+  daily: DailyWeatherForecast[];
+  updatedAt: string;
+  source: string;
 }
 
 export interface ItineraryPlan {
@@ -183,6 +227,8 @@ export interface ItineraryPlan {
   routeSummary: string;
   aiOptimizationReasoning: string;
   slots: ItineraryTimeSlot[];
+  tripStartDate?: string;
+  weatherContext?: CityWeatherData;
   isDemoData?: boolean;
 }
 

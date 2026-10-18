@@ -12,17 +12,20 @@ import {
   RefreshCw, 
   Bookmark, 
   Check, 
-  Share2,
-  Info,
-  Car,
-  Lock,
-  User,
-  X
+  Share2, 
+  Info, 
+  Car, 
+  Lock, 
+  User, 
+  X,
+  Calendar,
+  CloudSun
 } from 'lucide-react';
 import { aiService } from '../services/aiService';
 import { storageService } from '../services/storageService';
 import { ItineraryPlan, UserProfile } from '../types';
 import { useLanguage } from '../hooks/useLanguage';
+import { ItineraryWeatherCard } from './ItineraryWeatherCard';
 
 interface ItineraryPlannerProps {
   onNavigateToFood?: (heritageId: string) => void;
@@ -36,6 +39,9 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ onNavigateTo
   const isEnglish = language === 'en';
   const [destination, setDestination] = useState<string>('Thành phố Huế');
   const [duration, setDuration] = useState<string>('1 ngày');
+  const [travelStartDate, setTravelStartDate] = useState<string>(() => {
+    return new Date().toISOString().split('T')[0];
+  });
   const [companion, setCompanion] = useState<string>('Gia đình có trẻ em');
   const [budget, setBudget] = useState<string>('Vừa phải');
   const [interests, setInterests] = useState<string[]>(['Di tích Cung đình', 'Ẩm thực địa phương', 'Làng nghề']);
@@ -43,6 +49,13 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ onNavigateTo
   const [itinerary, setItinerary] = useState<ItineraryPlan | null>(null);
   const [saved, setSaved] = useState<boolean>(false);
   const [showAuthNoticeModal, setShowAuthNoticeModal] = useState<boolean>(false);
+
+  const getDurationDays = (dur: string) => {
+    if (dur.includes('3 ngày') || dur.includes('3 days')) return 3;
+    if (dur.includes('2 ngày') || dur.includes('2 days')) return 2;
+    return 1;
+  };
+  const durationDays = getDurationDays(duration);
 
   const interestOptions = [
     'Di tích Cung đình & Lịch sử',
@@ -130,14 +143,15 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ onNavigateTo
       </div>
 
       {/* Input Form Panel */}
-      <div className="bg-stone-900 border border-stone-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 mb-10">
+      <div className="bg-stone-900 border border-stone-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 mb-8">
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           
           {/* Destination */}
-          <div>
-            <label className="block text-xs font-semibold text-stone-300 uppercase tracking-wider mb-2">
-              {isEnglish ? 'Destination:' : 'Điểm đến:'}
+          <div className="lg:col-span-1">
+            <label className="block text-xs font-semibold text-stone-300 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <MapPin className="w-3 h-3 text-amber-400" />
+              <span>{isEnglish ? 'Destination:' : 'Điểm đến:'}</span>
             </label>
             <select
               value={destination}
@@ -150,13 +164,38 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ onNavigateTo
               <option value="Ninh Bình">{isEnglish ? 'Ninh Binh (Trang An - Hoa Lu)' : 'Ninh Bình (Tràng An - Hoa Lư)'}</option>
               <option value="TP. Hồ Chí Minh">{isEnglish ? 'Ho Chi Minh City (Old & New Saigon)' : 'TP. Hồ Chí Minh (Sài Gòn xưa & nay)'}</option>
               <option value="Đà Nẵng">{isEnglish ? 'Da Nang & Cham Sculpture' : 'Đà Nẵng & Điêu khắc Chăm'}</option>
+              <option value="Quảng Ninh">{isEnglish ? 'Ha Long Bay (Quang Ninh)' : 'Vịnh Hạ Long (Quảng Ninh)'}</option>
+              <option value="Lào Cai">{isEnglish ? 'Sa Pa & Fansipan (Lao Cai)' : 'Sa Pa & Fansipan (Lào Cai)'}</option>
+              <option value="Hà Giang">{isEnglish ? 'Ha Giang (Dong Van Karst)' : 'Hà Giang (Đồng Văn - Lũng Cú)'}</option>
+              <option value="Cao Bằng">{isEnglish ? 'Cao Bang (Ban Gioc Waterfall)' : 'Cao Bằng (Thác Bản Giốc)'}</option>
+              <option value="Lâm Đồng">{isEnglish ? 'Da Lat (City of Eternal Spring)' : 'Đà Lạt (Xứ ngàn hoa)'}</option>
+              <option value="Khánh Hòa">{isEnglish ? 'Nha Trang (Ponagar Tower)' : 'Nha Trang (Tháp Bà Ponagar)'}</option>
+              <option value="Kiên Giang">{isEnglish ? 'Phu Quoc Island' : 'Đảo Ngọc Phú Quốc'}</option>
+              <option value="Cần Thơ">{isEnglish ? 'Can Tho (Mekong Delta)' : 'Cần Thơ (Chợ nổi Cái Răng)'}</option>
+              <option value="Tây Ninh">{isEnglish ? 'Tay Ninh (Ba Den Mountain)' : 'Tây Ninh (Núi Bà Đen)'}</option>
+              <option value="Bà Rịa - Vũng Tàu">{isEnglish ? 'Con Dao & Vung Tau' : 'Côn Đảo & Vũng Tàu'}</option>
             </select>
           </div>
 
+          {/* Travel Start Date */}
+          <div className="lg:col-span-1">
+            <label className="block text-xs font-semibold text-stone-300 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <Calendar className="w-3 h-3 text-amber-400" />
+              <span>{isEnglish ? 'Start Date:' : 'Ngày khởi hành:'}</span>
+            </label>
+            <input
+              type="date"
+              value={travelStartDate}
+              onChange={(e) => setTravelStartDate(e.target.value)}
+              className="w-full bg-stone-950 border border-stone-700 text-stone-100 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-amber-500 cursor-pointer"
+            />
+          </div>
+
           {/* Duration */}
-          <div>
-            <label className="block text-xs font-semibold text-stone-300 uppercase tracking-wider mb-2">
-              {isEnglish ? 'Duration:' : 'Thời lượng:'}
+          <div className="lg:col-span-1">
+            <label className="block text-xs font-semibold text-stone-300 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <Clock className="w-3 h-3 text-amber-400" />
+              <span>{isEnglish ? 'Duration:' : 'Thời lượng:'}</span>
             </label>
             <select
               value={duration}
@@ -170,7 +209,7 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ onNavigateTo
           </div>
 
           {/* Companion */}
-          <div>
+          <div className="lg:col-span-1">
             <label className="block text-xs font-semibold text-stone-300 uppercase tracking-wider mb-2">
               {isEnglish ? 'Travel party:' : 'Đồng hành:'}
             </label>
@@ -187,7 +226,7 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ onNavigateTo
           </div>
 
           {/* Budget */}
-          <div>
+          <div className="lg:col-span-1">
             <label className="block text-xs font-semibold text-stone-300 uppercase tracking-wider mb-2">
               {isEnglish ? 'Budget:' : 'Ngân sách:'}
             </label>
@@ -201,6 +240,17 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ onNavigateTo
               <option value="Thoải mái (Cao cấp)">{isEnglish ? 'Comfortable' : 'Thoải mái'}</option>
             </select>
           </div>
+        </div>
+
+        {/* Real-time Weather Card for Destination */}
+        <div className="pt-1">
+          <ItineraryWeatherCard
+            destination={destination}
+            onCityChange={(newCity) => setDestination(newCity)}
+            language={language}
+            selectedDate={travelStartDate}
+            durationDays={durationDays}
+          />
         </div>
 
         {/* Interests Selection */}
@@ -235,7 +285,7 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ onNavigateTo
           id="btn-generate-itinerary"
           onClick={handleGenerate}
           disabled={loading}
-          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-stone-950 font-bold text-sm shadow-xl shadow-amber-900/40 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-stone-950 font-bold text-sm shadow-xl shadow-amber-900/40 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
         >
           {loading ? (
             <>
@@ -284,6 +334,17 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ onNavigateTo
             </button>
           </div>
 
+          {/* Active Trip Weather Forecast & Activity Guidance */}
+          <div>
+            <ItineraryWeatherCard
+              destination={itinerary.destination || destination}
+              onCityChange={(newCity) => setDestination(newCity)}
+              language={language}
+              selectedDate={travelStartDate}
+              durationDays={durationDays}
+            />
+          </div>
+
           {/* AI Reasoning Box: "Vì sao AI sắp xếp như vậy?" */}
           <div className="p-5 bg-amber-950/30 border border-amber-500/40 rounded-2xl space-y-2">
             <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2">
@@ -325,6 +386,20 @@ export const ItineraryPlanner: React.FC<ItineraryPlannerProps> = ({ onNavigateTo
 
                     <h5 className="font-serif font-bold text-stone-100 text-sm">{slot.title}</h5>
                     <p className="text-xs text-stone-300 leading-relaxed">{slot.description}</p>
+
+                    {/* Time-of-Day Weather Guidance */}
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-900/90 border border-stone-800/80 text-[11px] text-stone-300">
+                      <CloudSun className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>
+                        {slot.time.startsWith('07') || slot.time.startsWith('08') || slot.time.startsWith('09')
+                          ? (isEnglish ? 'Morning: Mild & cool weather, ideal for photography & heritage walking' : 'Buổi sáng: Không khí mát lành, lý tưởng chụp ảnh & dạo bộ di tích')
+                          : slot.time.startsWith('11') || slot.time.startsWith('12') || slot.time.startsWith('13')
+                          ? (isEnglish ? 'Midday: Strong sun, enjoy local dining or sheltered indoor halls' : 'Buổi trưa: Nắng gắt, ưu tiên thưởng thức ẩm thực hoặc gian trưng bày trong nhà')
+                          : slot.time.startsWith('14') || slot.time.startsWith('15')
+                          ? (isEnglish ? 'Early afternoon: Shaded palace pavilions or craft workshops' : 'Đầu giờ chiều: Trải nghiệm làng nghề, gian cung điện râm mát')
+                          : (isEnglish ? 'Late afternoon: Pleasant breeze, perfect for scenic sunset walk' : 'Chiều tà: Gió dịu mát, lý tưởng ngắm hoàng hôn & phố cổ')}
+                      </span>
+                    </div>
 
                     {slot.tip && (
                       <div className="p-2 bg-stone-900/80 rounded-lg text-[11px] text-amber-200 border border-amber-500/20 flex items-center gap-1.5">

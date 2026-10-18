@@ -1116,6 +1116,202 @@ Tối ưu hóa:
 });
 
 // ==========================================
+// 8B. REAL-TIME WEATHER FORECAST (Open-Meteo)
+// ==========================================
+interface ServerWeatherCacheEntry {
+  timestamp: number;
+  data: any;
+}
+const serverWeatherCache = new Map<string, ServerWeatherCacheEntry>();
+
+const VIETNAM_CITY_COORDINATES: Record<string, { name: string; lat: number; lng: number }> = {
+  'huế': { name: 'Thành phố Huế', lat: 16.4637, lng: 107.5909 },
+  'thành phố huế': { name: 'Thành phố Huế', lat: 16.4637, lng: 107.5909 },
+  'thừa thiên huế': { name: 'Thừa Thiên Huế', lat: 16.4637, lng: 107.5909 },
+  'hà nội': { name: 'Thủ đô Hà Nội', lat: 21.0285, lng: 105.8542 },
+  'hội an': { name: 'Phố cổ Hội An', lat: 15.8801, lng: 108.3380 },
+  'phố cổ hội an': { name: 'Phố cổ Hội An', lat: 15.8801, lng: 108.3380 },
+  'quảng nam': { name: 'Quảng Nam', lat: 15.5670, lng: 108.0167 },
+  'ninh bình': { name: 'Ninh Bình', lat: 20.2506, lng: 105.9744 },
+  'tp. hồ chí minh': { name: 'TP. Hồ Chí Minh', lat: 10.8231, lng: 106.6297 },
+  'hồ chí minh': { name: 'TP. Hồ Chí Minh', lat: 10.8231, lng: 106.6297 },
+  'sài gòn': { name: 'TP. Hồ Chí Minh', lat: 10.8231, lng: 106.6297 },
+  'đà nẵng': { name: 'Thành phố Đà Nẵng', lat: 16.0544, lng: 108.2022 },
+  'quảng ninh': { name: 'Quảng Ninh', lat: 20.9505, lng: 107.0734 },
+  'hạ long': { name: 'Vịnh Hạ Long', lat: 20.9505, lng: 107.0734 },
+  'lào cai': { name: 'Lào Cai', lat: 22.3364, lng: 103.8438 },
+  'sa pa': { name: 'Sa Pa', lat: 22.3364, lng: 103.8438 },
+  'sapa': { name: 'Sa Pa', lat: 22.3364, lng: 103.8438 },
+  'hà giang': { name: 'Hà Giang', lat: 22.8233, lng: 104.9839 },
+  'cao bằng': { name: 'Cao Bằng', lat: 22.6666, lng: 106.2639 },
+  'lâm đồng': { name: 'Lâm Đồng', lat: 11.9404, lng: 108.4583 },
+  'đà lạt': { name: 'Đà Lạt', lat: 11.9404, lng: 108.4583 },
+  'khánh hòa': { name: 'Khánh Hòa', lat: 12.2388, lng: 109.1967 },
+  'nha trang': { name: 'Nha Trang', lat: 12.2388, lng: 109.1967 },
+  'kiên giang': { name: 'Kiên Giang', lat: 10.2289, lng: 103.9572 },
+  'phú quốc': { name: 'Phú Quốc', lat: 10.2289, lng: 103.9572 },
+  'cần thơ': { name: 'Cần Thơ', lat: 10.0452, lng: 105.7469 },
+  'tây ninh': { name: 'Tây Ninh', lat: 11.3100, lng: 106.0983 },
+  'bình thuận': { name: 'Bình Thuận', lat: 10.9333, lng: 108.1000 },
+  'phú yên': { name: 'Phú Yên', lat: 13.0882, lng: 109.0926 },
+  'bà rịa - vũng tàu': { name: 'Bà Rịa - Vũng Tàu', lat: 10.4114, lng: 107.1362 },
+  'vũng tàu': { name: 'Vũng Tàu', lat: 10.3460, lng: 107.0843 },
+  'côn đảo': { name: 'Côn Đảo', lat: 8.6835, lng: 106.6087 }
+};
+
+const WMO_SERVER_MAP: Record<number, { vi: string; en: string; icon: string; isRainy: boolean; isHot: boolean; isStormy: boolean }> = {
+  0: { vi: 'Trời quang đãng, nắng đẹp', en: 'Clear sky, sunny', icon: '☀️', isRainy: false, isHot: false, isStormy: false },
+  1: { vi: 'Trời ít mây, nắng dịu', en: 'Mainly clear, pleasant', icon: '🌤️', isRainy: false, isHot: false, isStormy: false },
+  2: { vi: 'Mây rải rác, râm mát', en: 'Partly cloudy, mild', icon: '⛅', isRainy: false, isHot: false, isStormy: false },
+  3: { vi: 'Nhiều mây, âm u', en: 'Overcast, cloudy', icon: '☁️', isRainy: false, isHot: false, isStormy: false },
+  45: { vi: 'Sương mù nhẹ', en: 'Foggy', icon: '🌫️', isRainy: false, isHot: false, isStormy: false },
+  48: { vi: 'Sương mù dày đặc', en: 'Dense rime fog', icon: '🌫️', isRainy: false, isHot: false, isStormy: false },
+  51: { vi: 'Mưa phùn nhẹ', en: 'Light drizzle', icon: '🌦️', isRainy: true, isHot: false, isStormy: false },
+  53: { vi: 'Mưa phùn rải rác', en: 'Moderate drizzle', icon: '🌦️', isRainy: true, isHot: false, isStormy: false },
+  55: { vi: 'Mưa phùn hạt dày', en: 'Dense drizzle', icon: '🌧️', isRainy: true, isHot: false, isStormy: false },
+  61: { vi: 'Mưa rào nhẹ', en: 'Slight rain showers', icon: '🌦️', isRainy: true, isHot: false, isStormy: false },
+  63: { vi: 'Mưa vừa', en: 'Moderate rain', icon: '🌧️', isRainy: true, isHot: false, isStormy: false },
+  65: { vi: 'Mưa to nặng hạt', en: 'Heavy rain', icon: '🌧️', isRainy: true, isHot: false, isStormy: false },
+  80: { vi: 'Mưa rào ngắt quãng', en: 'Scattered rain showers', icon: '🌦️', isRainy: true, isHot: false, isStormy: false },
+  81: { vi: 'Mưa rào từng cơn', en: 'Moderate rain showers', icon: '🌧️', isRainy: true, isHot: false, isStormy: false },
+  82: { vi: 'Mưa rào xối xả', en: 'Violent rain showers', icon: '⛈️', isRainy: true, isHot: false, isStormy: true },
+  95: { vi: 'Dông sét, sấm chớp', en: 'Thunderstorm', icon: '⛈️', isRainy: true, isHot: false, isStormy: true },
+  96: { vi: 'Dông kèm mưa đá', en: 'Thunderstorm with hail', icon: '⛈️', isRainy: true, isHot: false, isStormy: true },
+  99: { vi: 'Dông lốc nguy hiểm', en: 'Severe thunderstorm', icon: '⛈️', isRainy: true, isHot: false, isStormy: true }
+};
+
+app.get('/api/weather', async (req: Request, res: Response) => {
+  try {
+    const cityQuery = String(req.query.city || 'Thành phố Huế').trim();
+    let lat = req.query.lat ? parseFloat(String(req.query.lat)) : NaN;
+    let lng = req.query.lng ? parseFloat(String(req.query.lng)) : NaN;
+    let finalCityName = cityQuery;
+
+    if (isNaN(lat) || isNaN(lng)) {
+      const qLower = cityQuery.toLowerCase();
+      let matched = false;
+      for (const [k, v] of Object.entries(VIETNAM_CITY_COORDINATES)) {
+        if (qLower.includes(k) || k.includes(qLower)) {
+          lat = v.lat;
+          lng = v.lng;
+          finalCityName = v.name;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        lat = 16.4637;
+        lng = 107.5909;
+        finalCityName = 'Thành phố Huế';
+      }
+    }
+
+    const cacheKey = `weather_${lat.toFixed(2)}_${lng.toFixed(2)}`;
+    const cached = serverWeatherCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < 20 * 60 * 1000) {
+      return res.json({ success: true, data: cached.data, isCached: true });
+    }
+
+    const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,uv_index_max,wind_speed_10m_max&timezone=Asia%2FHo_Chi_Minh`;
+
+    const weatherRes = await fetch(openMeteoUrl);
+    if (!weatherRes.ok) {
+      throw new Error(`Open-Meteo returned status ${weatherRes.status}`);
+    }
+
+    const data = await weatherRes.json();
+    const current = data.current || {};
+    const daily = data.daily || {};
+
+    const curWmo = WMO_SERVER_MAP[current.weather_code] || WMO_SERVER_MAP[0];
+    const dailyFormatted: any[] = [];
+    const times = daily.time || [];
+
+    for (let i = 0; i < times.length; i++) {
+      const dateStr = times[i];
+      const code = daily.weather_code?.[i] ?? 0;
+      const wmo = WMO_SERVER_MAP[code] || WMO_SERVER_MAP[0];
+      const tempMax = Math.round(daily.temperature_2m_max?.[i] ?? 30);
+      const tempMin = Math.round(daily.temperature_2m_min?.[i] ?? 24);
+      const precipSum = Math.round((daily.precipitation_sum?.[i] ?? 0) * 10) / 10;
+      const precipProb = Math.round(daily.precipitation_probability_max?.[i] ?? 20);
+      const uvMax = Math.round((daily.uv_index_max?.[i] ?? 6) * 10) / 10;
+      const windMax = Math.round(daily.wind_speed_10m_max?.[i] ?? 12);
+
+      const isRainy = wmo.isRainy || precipProb >= 50 || precipSum > 2;
+      const isHot = tempMax >= 33 || uvMax >= 8;
+      const isStormy = wmo.isStormy || windMax > 38;
+
+      let suggestionVi = `Thời tiết lý tưởng cho các hoạt động tham quan ngoài trời tại ${finalCityName}.`;
+      let suggestionEn = `Ideal weather for outdoor sightseeing activities in ${finalCityName}.`;
+      let warningVi: string | undefined;
+      let warningEn: string | undefined;
+
+      if (isStormy) {
+        warningVi = `⚠️ Cảnh báo dông lốc, gió giật ${windMax} km/h. Khuyến cáo tạm hoãn du thuyền trên sông hoặc các tour khám phá đèo núi.`;
+        warningEn = `⚠️ Thunderstorm warning with gusts up to ${windMax} km/h. Postpone river boat rides or mountain treks.`;
+        suggestionVi = `🌧️ Dông bão: Ưu tiên nghỉ ngơi, tham quan các gian trưng bày cổ vật trong nhà và bảo tàng di sản.`;
+        suggestionEn = `🌧️ Stormy: Stay sheltered and explore indoor museum galleries and historical halls.`;
+      } else if (isRainy) {
+        suggestionVi = `🌧️ Mưa rào: Ưu tiên di tích có khu vực trong nhà, bảo tàng lịch sử hoặc quán cà phê văn hóa ngắm mưa cổ kính.`;
+        suggestionEn = `🌧️ Rainy: Favor indoor heritage sites, history museums, or charming cultural cafes.`;
+      } else if (isHot) {
+        suggestionVi = `☀️ Nắng gắt (${tempMax}°C, UV ${uvMax}): Nên tham quan di tích sáng sớm hoặc chiều tà; giữa trưa nghỉ ngơi tránh nắng.`;
+        suggestionEn = `☀️ Hot & sunny (${tempMax}°C, UV ${uvMax}): Tour outdoors early morning or late afternoon; seek shade during midday.`;
+      }
+
+      dailyFormatted.push({
+        date: dateStr,
+        dayIndex: i + 1,
+        weatherCode: code,
+        conditionText: wmo.vi,
+        conditionIcon: wmo.icon,
+        tempMax,
+        tempMin,
+        precipitationSum: precipSum,
+        precipitationProbability: precipProb,
+        uvIndexMax: uvMax,
+        windSpeedMax: windMax,
+        isRainy,
+        isHot,
+        isStormy,
+        activitySuggestionVi: suggestionVi,
+        activitySuggestionEn: suggestionEn,
+        warningNoticeVi: warningVi,
+        warningNoticeEn: warningEn
+      });
+    }
+
+    const payload = {
+      cityName: finalCityName,
+      destinationKey: cityQuery,
+      latitude: lat,
+      longitude: lng,
+      current: {
+        temperature: Math.round(current.temperature_2m ?? 28),
+        apparentTemperature: Math.round(current.apparent_temperature ?? 30),
+        weatherCode: current.weather_code ?? 0,
+        conditionText: curWmo.vi,
+        conditionIcon: curWmo.icon,
+        humidity: Math.round(current.relative_humidity_2m ?? 75),
+        windSpeed: Math.round(current.wind_speed_10m ?? 8),
+        precipitation: Math.round((current.precipitation ?? 0) * 10) / 10,
+        isDay: current.is_day === 1
+      },
+      daily: dailyFormatted,
+      updatedAt: new Date().toISOString(),
+      source: 'Open-Meteo WMO'
+    };
+
+    serverWeatherCache.set(cacheKey, { timestamp: Date.now(), data: payload });
+    return res.json({ success: true, data: payload, isCached: false });
+  } catch (err: any) {
+    console.error('[Server Weather API Error]:', err?.message || err);
+    return res.status(500).json({ success: false, error: 'Không thể lấy dữ liệu thời tiết thực tế từ Open-Meteo' });
+  }
+});
+
+// ==========================================
 // 9. AI PLACE IMAGE FINDER
 // ==========================================
 app.post('/api/ai/find-place-image', async (req: Request, res: Response) => {
