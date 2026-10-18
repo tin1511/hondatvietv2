@@ -245,7 +245,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   {SUPPORTED_LANGUAGES.map((lang) => (
                     <option key={lang.code} value={lang.code} className="bg-stone-900 text-stone-100 font-semibold py-1">
-                      {lang.flag} {lang.name} ({lang.code.toUpperCase()})
+                      {lang.flag}
                     </option>
                   ))}
                 </select>
