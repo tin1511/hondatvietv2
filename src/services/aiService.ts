@@ -161,7 +161,7 @@ function getOfflineTourGuideReply(message: string): string {
       '⚡ **[HƯỚNG DẪN VIÊN TRI THỨC NGOẠI TUYẾN]**',
       'Mình chưa tìm thấy địa điểm phù hợp trong kho dữ liệu có sẵn, nên không muốn đoán hoặc đưa thông tin không liên quan.',
       'Bạn hãy thử nhập tên di tích, địa danh hoặc tỉnh/thành cụ thể. Khi ngoại tuyến, kho dữ liệu không thể tự cập nhật thông tin mới.'
-    ].join('\\n\\n');
+    ].join('\n\n');
   }
 
   const facts = Array.isArray(matchedHeritage.interestingFacts)
@@ -173,11 +173,11 @@ function getOfflineTourGuideReply(message: string): string {
     `Dưới đây là thông tin tìm thấy trong kho dữ liệu cục bộ về **${matchedHeritage.name}**:`,
     `📍 **Địa điểm:** ${matchedHeritage.address || matchedHeritage.province || 'Chưa có dữ liệu địa điểm'}`,
     matchedHeritage.period ? `🕰️ **Thời kỳ:** ${matchedHeritage.period}` : '',
-    matchedHeritage.history ? `📜 **Lịch sử:**\\n${matchedHeritage.history}` : '',
-    matchedHeritage.culturalSignificance ? `✨ **Ý nghĩa văn hóa:**\\n${matchedHeritage.culturalSignificance}` : '',
-    facts.length ? `💡 **Thông tin thú vị:**\\n${facts.map(f => `• ${f}`).join('\\n')}` : '',
+    matchedHeritage.history ? `📜 **Lịch sử:**\n${matchedHeritage.history}` : '',
+    matchedHeritage.culturalSignificance ? `✨ **Ý nghĩa văn hóa:**\n${matchedHeritage.culturalSignificance}` : '',
+    facts.length ? `💡 **Thông tin thú vị:**\n${facts.map(f => `• ${f}`).join('\n')}` : '',
     '_Đây là dữ liệu tra cứu ngoại tuyến; thông tin chi tiết phụ thuộc vào bản ghi hiện có trong ứng dụng._'
-  ].filter(Boolean).join('\\n\\n');
+  ].filter(Boolean).join('\n\n');
 }
 
 export const aiService = {
