@@ -130,35 +130,54 @@ function getOfflineHeritageRecognition(prompt?: string): RecognizeHeritageResult
  * Offline AI Local Tour Guide Chat Generator
  */
 function getOfflineTourGuideReply(message: string): string {
-  const query = message.toLowerCase();
-  
-  // Search local heritage database
-  const matchedHeritage = HERITAGE_DATABASE.find(item => 
-    query.includes(item.name.toLowerCase()) || 
-    query.includes(item.province.toLowerCase()) ||
-    (item.vietnameseName && query.includes(item.vietnameseName.toLowerCase()))
-  );
+  const normalize = (value: unknown): string =>
+    String(value ?? '')
+      .toLocaleLowerCase('vi-VN')
+      .replace(/[đĐ]/g, 'd')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-  if (matchedHeritage) {
-    return `⚡ **[HƯỚNG DẪN VIÊN AI NGOẠI TUYẾN]**\n\n` +
-      `Dạ em chào quý vị! Do hiện tại đang ở **Chế độ Ngoại tuyến (không có sóng Internet)**, em xin trích xuất thông tin chính xác từ **Bộ tri thức di sản offline** trong máy về **${matchedHeritage.name}**:\n\n` +
-      `📍 **Địa điểm**: ${matchedHeritage.address || matchedHeritage.province}\n` +
-      `🏛️ **Triều đại / Thời kỳ**: ${matchedHeritage.period}\n\n` +
-      `📜 **Lịch sử & Nguồn gốc**:\n${matchedHeritage.history}\n\n` +
-      `✨ **Ý nghĩa văn hóa đặc sắc**:\n${matchedHeritage.culturalSignificance}\n\n` +
-      `💡 **Thông tin thú vị**:\n` +
-      matchedHeritage.interestingFacts.map(f => `• ${f}`).join('\n') +
-      `\n\n*Quý vị có thể bật lại kết nối mạng sau để cập nhật thêm tư liệu mới nhất từ AI Cloud nhé!*`;
+  const query = normalize(message);
+  if (!query) {
+    return 'Bạn muốn tìm hiểu di tích, địa điểm du lịch hoặc nét văn hóa nào của Việt Nam?';
   }
 
-  // General offline response if no specific keyword matched
-  return `⚡ **[HƯỚNG DẪN VIÊN AI NGOẠI TUYẾN]**\n\n` +
-    `Dạ em chào quý khách! Ứng dụng đang chạy ở **Chế độ Ngoại tuyến**. Em đã tra cứu trong Bộ dữ liệu Di sản Việt Nam tích hợp sẵn:\n\n` +
-    `• **Văn Miếu - Quốc Tử Giám**: Trường đại học đầu tiên của Việt Nam với 82 Bia Tiến sĩ UNESCO.\n` +
-    `• **Cố đô Huế**: Cung điện Hoàng thành triều Nguyễn với Ngọ Môn & Điện Thái Hòa.\n` +
-    `• **Phố cổ Hội An**: Đô thị cổ thế kỷ 16-17 với Chùa Cầu độc đáo.\n` +
-    `• **Vịnh Hạ Long & Phong Nha**: Di sản thiên nhiên thế giới kỳ vĩ.\n\n` +
-    `*Quý vị có thể hỏi thông tin về tỉnh thành, tên di tích, làng nghề hoặc món ăn di sản, em sẽ trích xuất ngay dữ liệu offline phục vụ đoàn ạ!*`;
+  const matchedHeritage = HERITAGE_DATABASE.find(item => {
+    const name = normalize(item.name);
+    const vietnameseName = normalize(item.vietnameseName);
+    const province = normalize(item.province);
+    return Boolean(
+      (name && (query.includes(name) || name.includes(query))) ||
+      (vietnameseName && (query.includes(vietnameseName) || vietnameseName.includes(query))) ||
+      (province && query.includes(province))
+    );
+  });
+
+  if (!matchedHeritage) {
+    return [
+      '⚡ **[HƯỚNG DẪN VIÊN TRI THỨC NGOẠI TUYẾN]**',
+      'Mình chưa tìm thấy địa điểm phù hợp trong kho dữ liệu có sẵn, nên không muốn đoán hoặc đưa thông tin không liên quan.',
+      'Bạn hãy thử nhập tên di tích, địa danh hoặc tỉnh/thành cụ thể. Khi ngoại tuyến, kho dữ liệu không thể tự cập nhật thông tin mới.'
+    ].join('\n\n');
+  }
+
+  const facts = Array.isArray(matchedHeritage.interestingFacts)
+    ? matchedHeritage.interestingFacts
+    : [];
+
+  return [
+    '⚡ **[HƯỚNG DẪN VIÊN TRI THỨC NGOẠI TUYẾN]**',
+    `Dưới đây là thông tin tìm thấy trong kho dữ liệu cục bộ về **${matchedHeritage.name}**:`,
+    `📍 **Địa điểm:** ${matchedHeritage.address || matchedHeritage.province || 'Chưa có dữ liệu địa điểm'}`,
+    matchedHeritage.period ? `🕰️ **Thời kỳ:** ${matchedHeritage.period}` : '',
+    matchedHeritage.history ? `📜 **Lịch sử:**\n${matchedHeritage.history}` : '',
+    matchedHeritage.culturalSignificance ? `✨ **Ý nghĩa văn hóa:**\n${matchedHeritage.culturalSignificance}` : '',
+    facts.length ? `💡 **Thông tin thú vị:**\n${facts.map(f => `• ${f}`).join('\n')}` : '',
+    '_Đây là dữ liệu tra cứu ngoại tuyến; thông tin chi tiết phụ thuộc vào bản ghi hiện có trong ứng dụng._'
+  ].filter(Boolean).join('\n\n');
 }
 
 export const aiService = {
