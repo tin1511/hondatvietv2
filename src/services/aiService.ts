@@ -16,6 +16,7 @@ import { ttsService, TTSOptions } from './ttsService';
 import { speechService, SpeechRecognitionOptions } from './speechService';
 import { LandmarkPhotoItem, VIETNAM_LANDMARK_PHOTOS } from '../data/landmarkImagesDatabase';
 import { HERITAGE_DATABASE } from '../data/vietnamHeritageData';
+import { generateOfflineTourGuideReply } from './offlineGuideService';
 
 export const AI_MODEL = 'gemini-flash-latest';
 
@@ -287,24 +288,15 @@ export const aiService = {
     language?: string;
     isTourGuideMode?: boolean;
   }): Promise<string> {
-    if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      return getOfflineTourGuideReply(params.message);
-    }
-
+    // The cultural chatbot now uses bundled local knowledge only.
+    // Deliberately do not call /api/ai/chat or fall back to Gemini/cloud providers.
     try {
-      const res = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Trợ lý AI hiện đang bận');
-      }
-      return cleanVietnameseText(data.reply);
+      return cleanVietnameseText(
+        generateOfflineTourGuideReply(params.message, params.currentHeritageContext)
+      );
     } catch (err) {
-      console.warn('AI Chat Assistant offline fallback:', err);
-      return getOfflineTourGuideReply(params.message);
+      console.error('Offline tour guide retrieval failed:', err);
+      return 'Xin lỗi, kho tri thức ngoại tuyến hiện chưa thể xử lý câu hỏi này. Bạn hãy thử nhập tên di tích hoặc tỉnh/thành cụ thể.';
     }
   },
 
