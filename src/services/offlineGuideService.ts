@@ -16,7 +16,7 @@ type HeritageRecord = {
   [key: string]: unknown;
 };
 
-const records = HERITAGE_DATABASE as HeritageRecord[];
+const records = HERITAGE_DATABASE as unknown as HeritageRecord[];
 
 function normalize(text: unknown): string {
   return String(text ?? '')
