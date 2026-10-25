@@ -31,30 +31,73 @@ import {
 } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
-import { ImageRecognizer } from './components/ImageRecognizer';
-import { StoryPlayer } from './components/StoryPlayer';
-import { AIChatAssistant } from './components/AIChatAssistant';
-import { CulturalMap } from './components/CulturalMap';
-import { FoodAndEntertainmentModule } from './components/FoodAndEntertainmentModule';
-import { ItineraryPlanner } from './components/ItineraryPlanner';
-import { TraditionalCraftsAndArts } from './components/TraditionalCraftsAndArts';
-import { HeritageLearning } from './components/HeritageLearning';
-import { CommunityContributionModule } from './components/CommunityContribution';
-import { AdminDashboard } from './components/AdminDashboard';
-import { FavoritesView } from './components/FavoritesView';
-import { UserProfileView } from './components/UserProfileView';
 import { CulturalToolsDashboard } from './components/CulturalToolsDashboard';
 import { AuthModal } from './components/AuthModal';
-import { AuthGateway } from './components/AuthGateway';
-import { CityLandmarkModal } from './components/CityLandmarkModal';
-import { HeritageDetailModal } from './components/HeritageDetailModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { OfflineIndicator } from './components/OfflineIndicator';
-import { OfflineHeritageManagerModal } from './components/OfflineHeritageManagerModal';
 import { MobileAppDownloadBanner } from './components/MobileAppDownloadBanner';
-import { MobileAppDownloadModal } from './components/MobileAppDownloadModal';
-import { HeritageEditModal } from './components/HeritageEditModal';
-import { PlaceEditModal } from './components/PlaceEditModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
+
+// Resilient dynamic loader with automatic retry and dual default/named export support
+function lazyWithRetry<T extends React.ComponentType<any>>(
+  importFn: () => Promise<any>,
+  exportName?: string
+): React.LazyExoticComponent<T> {
+  return React.lazy(async () => {
+    let attempts = 2;
+    while (true) {
+      try {
+        const mod = await importFn();
+        const component = exportName ? (mod[exportName] || mod.default) : (mod.default || mod[Object.keys(mod)[0]]);
+        return { default: component };
+      } catch (err) {
+        if (attempts <= 0) throw err;
+        attempts--;
+        await new Promise((resolve) => setTimeout(resolve, 800));
+      }
+    }
+  });
+}
+
+// Code-split heavy views & modals for ultra-fast initial page load
+const ImageRecognizer = lazyWithRetry(() => import('./components/ImageRecognizer'), 'ImageRecognizer');
+const StoryPlayer = lazyWithRetry(() => import('./components/StoryPlayer'), 'StoryPlayer');
+const AIChatAssistant = lazyWithRetry(() => import('./components/AIChatAssistant'), 'AIChatAssistant');
+const CulturalMap = lazyWithRetry(() => import('./components/CulturalMap'), 'CulturalMap');
+const PlaceExplorer = lazyWithRetry(() => import('./components/PlaceExplorer'), 'PlaceExplorer');
+const FoodAndEntertainmentModule = lazyWithRetry(() => import('./components/FoodAndEntertainmentModule'), 'FoodAndEntertainmentModule');
+const ItineraryPlanner = lazyWithRetry(() => import('./components/ItineraryPlanner'), 'ItineraryPlanner');
+const TraditionalCraftsAndArts = lazyWithRetry(() => import('./components/TraditionalCraftsAndArts'), 'TraditionalCraftsAndArts');
+const HeritageLearning = lazyWithRetry(() => import('./components/HeritageLearning'), 'HeritageLearning');
+const CommunityContributionModule = lazyWithRetry(() => import('./components/CommunityContribution'), 'CommunityContributionModule');
+const AdminDashboard = lazyWithRetry(() => import('./components/AdminDashboard'), 'AdminDashboard');
+const FavoritesView = lazyWithRetry(() => import('./components/FavoritesView'), 'FavoritesView');
+const UserProfileView = lazyWithRetry(() => import('./components/UserProfileView'), 'UserProfileView');
+const CityLandmarkModal = lazyWithRetry(() => import('./components/CityLandmarkModal'), 'CityLandmarkModal');
+const HeritageDetailModal = lazyWithRetry(() => import('./components/HeritageDetailModal'), 'HeritageDetailModal');
+const OfflineHeritageManagerModal = lazyWithRetry(() => import('./components/OfflineHeritageManagerModal'), 'OfflineHeritageManagerModal');
+const MobileAppDownloadModal = lazyWithRetry(() => import('./components/MobileAppDownloadModal'), 'MobileAppDownloadModal');
+const HeritageEditModal = lazyWithRetry(() => import('./components/HeritageEditModal'), 'HeritageEditModal');
+
+const ViewSuspenseFallback = () => (
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex flex-col items-center justify-center min-h-[400px]">
+    <div className="relative flex items-center justify-center">
+      <div className="w-12 h-12 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin" />
+      <Sparkles className="w-5 h-5 text-amber-400 absolute animate-pulse" />
+    </div>
+    <p className="mt-4 text-xs font-serif tracking-wider text-amber-300 animate-pulse">
+      Đang tải dữ liệu Hồn Đất Việt...
+    </p>
+  </div>
+);
+
+const MapSuspenseFallback = () => (
+  <div className="w-full h-[550px] rounded-2xl bg-stone-950/70 border border-stone-800 flex flex-col items-center justify-center">
+    <div className="w-10 h-10 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin mb-3" />
+    <span className="text-xs text-stone-400 font-serif">Đang khởi tạo bản đồ di sản tương tác...</span>
+  </div>
+);
+
 import { HeritageItem, UserProfile, CityLandmarkBackground } from './types';
 import { HERITAGE_DATABASE } from './data/vietnamHeritageData';
 import { storageService, applySiteLogoToDom } from './services/storageService';
@@ -412,13 +455,15 @@ export default function App() {
                       </button>
                     </div>
 
-                    <CulturalMap
-                      currentUser={userProfile}
-                      language={language}
-                      onNavigateToStory={handleNavigateToStory}
-                      onNavigateToFood={handleNavigateToFood}
-                      onSelectHeritage={handleSelectHeritage}
-                    />
+                    <React.Suspense fallback={<MapSuspenseFallback />}>
+                      <PlaceExplorer
+                        currentUser={userProfile}
+                        language={language}
+                        onNavigateToStory={handleNavigateToStory}
+                        onNavigateToFood={handleNavigateToFood}
+                        onSelectHeritage={handleSelectHeritage}
+                      />
+                    </React.Suspense>
                   </div>
                 </section>
 
@@ -615,120 +660,125 @@ export default function App() {
               </div>
             )}
 
-            {/* VIEW 2: AI RECOGNITION */}
-            {(activeTab === 'recognize' || activeTab === 'recognizer') && (
-              <ImageRecognizer
-                onNavigateToStory={handleNavigateToStory}
-                onNavigateToFood={handleNavigateToFood}
-                onNavigateToMap={() => setActiveTab('map')}
-                onAskChatbot={(q) => handleNavigate('chat')}
-                language={language}
-              />
-            )}
+            {/* LAZY VIEW SUSPENSE WRAPPER */}
+            <ErrorBoundary>
+              <React.Suspense fallback={<ViewSuspenseFallback />}>
+              {/* VIEW 2: AI RECOGNITION */}
+              {(activeTab === 'recognize' || activeTab === 'recognizer') && (
+                <ImageRecognizer
+                  onNavigateToStory={handleNavigateToStory}
+                  onNavigateToFood={handleNavigateToFood}
+                  onNavigateToMap={() => setActiveTab('map')}
+                  onAskChatbot={(q: string) => handleNavigate('chat')}
+                  language={language}
+                />
+              )}
 
-            {/* VIEW 3: AI STORYTELLER */}
-            {(activeTab === 'story' || activeTab === 'storyteller') && (
-              <StoryPlayer
-                initialHeritageName={storyInitialTopic?.name}
-                initialHistory={storyInitialTopic?.history}
-                initialPeriod={storyInitialTopic?.period}
-                onSelectHeritageForPlaces={handleNavigateToFood}
-                language={language}
-              />
-            )}
+              {/* VIEW 3: AI STORYTELLER */}
+              {(activeTab === 'story' || activeTab === 'storyteller') && (
+                <StoryPlayer
+                  initialHeritageName={storyInitialTopic?.name}
+                  initialHistory={storyInitialTopic?.history}
+                  initialPeriod={storyInitialTopic?.period}
+                  onSelectHeritageForPlaces={handleNavigateToFood}
+                  language={language}
+                />
+              )}
 
-            {/* VIEW 4: AI CULTURAL CHAT */}
-            {activeTab === 'chat' && (
-              <AIChatAssistant
-                initialContext={chatContextHeritage}
-                language={language}
-              />
-            )}
+              {/* VIEW 4: AI CULTURAL CHAT */}
+              {activeTab === 'chat' && (
+                <AIChatAssistant
+                  initialContext={chatContextHeritage}
+                  language={language}
+                />
+              )}
 
-            {/* VIEW 5: CULTURAL MAP */}
-            {activeTab === 'map' && (
-              <CulturalMap
-                currentUser={userProfile}
-                language={language}
-                onNavigateToStory={handleNavigateToStory}
-                onNavigateToFood={handleNavigateToFood}
-                onSelectHeritage={handleSelectHeritage}
-              />
-            )}
+              {/* VIEW 5: UNIFIED PLACE EXPLORER (DUAL ONLINE MAP / OFFLINE BASIC) */}
+              {activeTab === 'map' && (
+                <PlaceExplorer
+                  currentUser={userProfile}
+                  language={language}
+                  onNavigateToStory={handleNavigateToStory}
+                  onNavigateToFood={handleNavigateToFood}
+                  onSelectHeritage={handleSelectHeritage}
+                />
+              )}
 
-            {/* VIEW 6: FOOD & ENTERTAINMENT NEAR HERITAGE */}
-            {activeTab === 'food' && (
-              <FoodAndEntertainmentModule
-                initialHeritageId={selectedFoodHeritageId}
-                onNavigateToHeritage={(hId) => {
-                  setActiveTab('map');
-                }}
-                language={language}
-              />
-            )}
+              {/* VIEW 6: FOOD & ENTERTAINMENT NEAR HERITAGE */}
+              {activeTab === 'food' && (
+                <FoodAndEntertainmentModule
+                  initialHeritageId={selectedFoodHeritageId}
+                  onNavigateToHeritage={(hId: string) => {
+                    setActiveTab('map');
+                  }}
+                  language={language}
+                />
+              )}
 
-            {/* VIEW 7: SMART ITINERARY PLANNER */}
-            {activeTab === 'itinerary' && (
-              <ItineraryPlanner
-                onNavigateToFood={handleNavigateToFood}
-                currentUser={userProfile}
-                onRequireAuth={() => handleOpenAuthModal('login')}
-                language={language}
-              />
-            )}
+              {/* VIEW 7: SMART ITINERARY PLANNER */}
+              {activeTab === 'itinerary' && (
+                <ItineraryPlanner
+                  onNavigateToFood={handleNavigateToFood}
+                  currentUser={userProfile}
+                  onRequireAuth={() => handleOpenAuthModal('login')}
+                  language={language}
+                />
+              )}
 
-            {/* VIEW 9: CRAFTS & TRADITIONAL ARTS */}
-            {activeTab === 'crafts' && (
-              <TraditionalCraftsAndArts
-                currentUser={userProfile}
-                language={language}
-              />
-            )}
+              {/* VIEW 9: CRAFTS & TRADITIONAL ARTS */}
+              {activeTab === 'crafts' && (
+                <TraditionalCraftsAndArts
+                  currentUser={userProfile}
+                  language={language}
+                />
+              )}
 
-            {/* VIEW 10: QUIZ & HISTORICAL TIMELINE */}
-            {(activeTab === 'quiz' || activeTab === 'learning') && (
-              <HeritageLearning
-                language={language}
-              />
-            )}
+              {/* VIEW 10: QUIZ & HISTORICAL TIMELINE */}
+              {(activeTab === 'quiz' || activeTab === 'learning') && (
+                <HeritageLearning
+                  language={language}
+                />
+              )}
 
-            {/* VIEW 11: COMMUNITY CONTRIBUTIONS */}
-            {activeTab === 'community' && (
-              <CommunityContributionModule
-                language={language}
-              />
-            )}
+              {/* VIEW 11: COMMUNITY CONTRIBUTIONS */}
+              {activeTab === 'community' && (
+                <CommunityContributionModule
+                  language={language}
+                />
+              )}
 
-            {/* VIEW 12: FAVORITES & SAVED ITEMS */}
-            {activeTab === 'favorites' && (
-              <FavoritesView
-                onNavigateToStory={handleNavigateToStory}
-                onNavigateToFood={handleNavigateToFood}
-                onNavigateToMap={() => setActiveTab('map')}
-                onNavigateToTab={handleNavigate}
-                onSelectHeritage={handleSelectHeritage}
-                language={language}
-              />
-            )}
+              {/* VIEW 12: FAVORITES & SAVED ITEMS */}
+              {activeTab === 'favorites' && (
+                <FavoritesView
+                  onNavigateToStory={handleNavigateToStory}
+                  onNavigateToFood={handleNavigateToFood}
+                  onNavigateToMap={() => setActiveTab('map')}
+                  onNavigateToTab={handleNavigate}
+                  onSelectHeritage={handleSelectHeritage}
+                  language={language}
+                />
+              )}
 
-            {/* VIEW 13: ADMIN DASHBOARD */}
-            {activeTab === 'admin' && (
-              <AdminDashboard
-                currentUser={userProfile}
-                onUserChange={handleUserChange}
-                language={language}
-              />
-            )}
+              {/* VIEW 13: ADMIN DASHBOARD */}
+              {activeTab === 'admin' && (
+                <AdminDashboard
+                  currentUser={userProfile}
+                  onUserChange={handleUserChange}
+                  language={language}
+                />
+              )}
 
-            {/* VIEW 14: USER PROFILE & HERITAGE BADGES */}
-            {(activeTab === 'profile' || activeTab === 'badges') && (
-              <UserProfileView
-                currentUser={userProfile}
-                onUserChange={handleUserChange}
-                onNavigateTab={handleNavigate}
-                language={language}
-              />
-            )}
+              {/* VIEW 14: USER PROFILE & HERITAGE BADGES */}
+              {(activeTab === 'profile' || activeTab === 'badges') && (
+                <UserProfileView
+                  currentUser={userProfile}
+                  onUserChange={handleUserChange}
+                  onNavigateTab={handleNavigate}
+                  language={language}
+                />
+              )}
+            </React.Suspense>
+            </ErrorBoundary>
           </motion.div>
         </AnimatePresence>
 
@@ -911,63 +961,73 @@ export default function App() {
         onExploreLandmark={handleExploreCurrentLandmark}
       />
 
-      {/* Modal: Khám phá & Chọn ảnh danh thắng Việt Nam làm hình nền trang web */}
-      <CityLandmarkModal
-        isOpen={showCityPicker}
-        onClose={() => setShowCityPicker(false)}
-        currentLandmark={currentLandmark}
-        onSelectLandmark={handleSelectLandmarkPreset}
-        onDetectGps={handleDetectGps}
-        isDetectingGps={isDetectingGps}
-        language={language}
-      />
-
-      {/* Modal: Xem chi tiết Di sản Văn hóa & Thuyết minh */}
-      <HeritageDetailModal
-        heritage={selectedDetailHeritage}
-        isOpen={isDetailModalOpen}
-        language={language}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedDetailHeritage(null);
-        }}
-        onNavigateToStory={handleNavigateToStory}
-        onNavigateToFood={handleNavigateToFood}
-        onAskAI={handleAskAIFromDetail}
-        onNavigateToMap={() => handleNavigate('map')}
-      />
-
       {/* Floating Offline Connection Indicator */}
       <OfflineIndicator
         onOpenOfflineManager={() => setIsOfflineModalOpen(true)}
       />
 
-      {/* Modal: Quản lý Chế độ Ngoại tuyến & Service Worker Cache */}
-      <OfflineHeritageManagerModal
-        isOpen={isOfflineModalOpen}
-        onClose={() => setIsOfflineModalOpen(false)}
-        onSelectHeritage={(item) => {
-          setSelectedDetailHeritage(item);
-          setIsDetailModalOpen(true);
-        }}
-      />
+      <React.Suspense fallback={null}>
+        {/* Modal: Khám phá & Chọn ảnh danh thắng Việt Nam làm hình nền trang web */}
+        {showCityPicker && (
+          <CityLandmarkModal
+            isOpen={showCityPicker}
+            onClose={() => setShowCityPicker(false)}
+            currentLandmark={currentLandmark}
+            onSelectLandmark={handleSelectLandmarkPreset}
+            onDetectGps={handleDetectGps}
+            isDetectingGps={isDetectingGps}
+            language={language}
+          />
+        )}
 
-      {/* Modal: Tải & Cài Đặt App Mobile (PWA & QR Code) */}
-      <MobileAppDownloadModal
-        isOpen={isDownloadModalOpen}
-        onClose={() => setIsDownloadModalOpen(false)}
-      />
+        {/* Modal: Xem chi tiết Di sản Văn hóa & Thuyết minh */}
+        {isDetailModalOpen && (
+          <HeritageDetailModal
+            heritage={selectedDetailHeritage}
+            isOpen={isDetailModalOpen}
+            language={language}
+            onClose={() => {
+              setIsDetailModalOpen(false);
+              setSelectedDetailHeritage(null);
+            }}
+            onNavigateToStory={handleNavigateToStory}
+            onNavigateToFood={handleNavigateToFood}
+            onAskAI={handleAskAIFromDetail}
+            onNavigateToMap={() => handleNavigate('map')}
+          />
+        )}
 
-      {/* Modal: Đề xuất Thêm Di sản Mới (Mở trực tiếp ở đầu trang) */}
-      {isGlobalHeritageModalOpen && (
-        <HeritageEditModal
-          heritage={null}
-          isOpen={isGlobalHeritageModalOpen}
-          language={language}
-          onClose={() => setIsGlobalHeritageModalOpen(false)}
-          onSaveSuccess={() => setIsGlobalHeritageModalOpen(false)}
-        />
-      )}
+        {/* Modal: Quản lý Chế độ Ngoại tuyến & Service Worker Cache */}
+        {isOfflineModalOpen && (
+          <OfflineHeritageManagerModal
+            isOpen={isOfflineModalOpen}
+            onClose={() => setIsOfflineModalOpen(false)}
+            onSelectHeritage={(item: HeritageItem) => {
+              setSelectedDetailHeritage(item);
+              setIsDetailModalOpen(true);
+            }}
+          />
+        )}
+
+        {/* Modal: Tải & Cài Đặt App Mobile (PWA & QR Code) */}
+        {isDownloadModalOpen && (
+          <MobileAppDownloadModal
+            isOpen={isDownloadModalOpen}
+            onClose={() => setIsDownloadModalOpen(false)}
+          />
+        )}
+
+        {/* Modal: Đề xuất Thêm Di sản Mới (Mở trực tiếp ở đầu trang) */}
+        {isGlobalHeritageModalOpen && (
+          <HeritageEditModal
+            heritage={null}
+            isOpen={isGlobalHeritageModalOpen}
+            language={language}
+            onClose={() => setIsGlobalHeritageModalOpen(false)}
+            onSaveSuccess={() => setIsGlobalHeritageModalOpen(false)}
+          />
+        )}
+      </React.Suspense>
 
     </div>
   );

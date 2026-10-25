@@ -52,7 +52,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     { id: 'recognizer', label: languageService.t('mobile.recognizer', language, 'Nhận diện'), icon: Camera, badge: 'AI' },
     { id: 'storyteller', label: languageService.t('mobile.storyteller', language, 'Kể chuyện'), icon: Sparkles },
     { id: 'chat', label: languageService.t('mobile.chat', language, 'HDV AI'), icon: MessageSquareQuote, badge: '3D' },
-    { id: 'map', label: languageService.t('mobile.map', language, 'Bản đồ'), icon: Globe },
+    { id: 'map', label: languageService.t('mobile.map', language, 'Khám phá'), icon: Globe },
   ];
 
   const moreMenuItems = [

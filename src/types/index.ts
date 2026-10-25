@@ -519,3 +519,54 @@ export interface RecognitionSectionConfig {
     samplesLabel?: string;
   }>;
 }
+
+// ==========================================
+// VIETNAM TOURISM KNOWLEDGE BASE SCHEMA
+// ==========================================
+
+export type KnowledgeVerificationStatus = 'verified' | 'folk_legend' | 'unverified';
+
+export interface KnowledgeSource {
+  title: string;
+  url?: string;
+  author?: string;
+  publisher?: string;
+  year?: number | string;
+  verified: boolean;
+}
+
+export interface KnowledgeVisitorInfo {
+  ticketPrice?: string;
+  openingHours?: string;
+  bestTimeToVisit?: string;
+  dressCode?: string;
+  tips?: string;
+  contactPhone?: string;
+}
+
+export interface TourismKnowledgePlace {
+  id: string;                         // Stable identifier, e.g. "vn-place-hanoi-van-mieu"
+  name: string;                       // Standard Vietnamese name
+  aliases: string[];                  // Synonyms, folk names, historical names, English names
+  provinceCode: string;               // Administrative code or normalized key (e.g. "01", "31", "hanoi")
+  provinceName?: string;              // Standard province / city display name
+  category: HeritageCategory | string;// Categorization
+  description: string;                // Overview / summary
+  history: string;                    // Historical background & context
+  culturalValue: string;              // Cultural, architectural, spiritual significance
+  address: string;                    // Physical address
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  visitorInfo?: KnowledgeVisitorInfo; // Visiting guide & practical info
+  relatedPlaces?: string[];           // IDs or names of nearby / culturally related places
+  sources: KnowledgeSource[];         // Citations and archival references
+  verificationStatus: KnowledgeVerificationStatus; // 'verified' | 'folk_legend' | 'unverified'
+  lastVerifiedAt: string;             // ISO Date string
+  createdAt: string;                  // ISO Date string
+  updatedAt: string;                  // ISO Date string
+  imageUrl?: string;                  // Primary photo
+  tags?: string[];                    // Search & discovery tags
+}
+

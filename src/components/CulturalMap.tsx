@@ -48,6 +48,14 @@ interface CulturalMapProps {
   onNavigateToStory: (heritageName: string, history?: string, period?: string) => void;
   onNavigateToFood: (heritageId: string) => void;
   onSelectHeritage?: (heritage: HeritageItem) => void;
+  onMapError?: (errorMessage: string) => void;
+  onMapReady?: () => void;
+  initialSearchQuery?: string;
+  initialCategory?: string;
+  initialRegion?: 'all' | 'north' | 'central' | 'south';
+  onSearchQueryChange?: (query: string) => void;
+  onCategoryChange?: (category: string) => void;
+  onRegionChange?: (region: 'all' | 'north' | 'central' | 'south') => void;
 }
 
 interface ProvinceProperties {
@@ -319,7 +327,15 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
   language = 'vi',
   onNavigateToStory,
   onNavigateToFood,
-  onSelectHeritage
+  onSelectHeritage,
+  onMapError,
+  onMapReady,
+  initialSearchQuery = '',
+  initialCategory = 'all',
+  initialRegion = 'all',
+  onSearchQueryChange,
+  onCategoryChange,
+  onRegionChange
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -353,9 +369,9 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
   const [hoveredProvinceName, setHoveredProvinceName] = useState<string | null>(null);
   const [activeHeritage, setActiveHeritage] = useState<HeritageItem | null>(null);
   const [editingHeritage, setEditingHeritage] = useState<HeritageItem | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedRegion, setSelectedRegion] = useState<'all' | 'north' | 'central' | 'south'>('all');
+  const [searchQuery, setSearchQuery] = useState<string>(initialSearchQuery || '');
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
+  const [selectedRegion, setSelectedRegion] = useState<'all' | 'north' | 'central' | 'south'>(initialRegion || 'all');
 
   // GPS state
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
@@ -458,6 +474,7 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
         if (isMounted) {
           setGeoData(data);
           setGeoLoadError(null);
+          onMapReady?.();
         }
       } catch (err) {
         if (!isMounted) return;
@@ -465,6 +482,7 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
           ? 'Tải bản đồ quá thời gian chờ. Hãy kiểm tra kết nối rồi thử lại.'
           : err instanceof Error ? err.message : 'Không thể tải dữ liệu bản đồ.';
         setGeoLoadError(message);
+        onMapError?.(message);
         console.warn('Vietnam 34-province GeoJSON load error:', err);
       } finally {
         window.clearTimeout(timeoutId);
@@ -1437,7 +1455,10 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                onSearchQueryChange?.(e.target.value);
+              }}
               placeholder={languageService.t('Tìm di tích, tỉnh thành...', language, 'Tìm di tích, tỉnh thành...')}
               className="w-full pl-8 pr-3 py-1.5 bg-stone-950 text-stone-100 placeholder-stone-500 text-xs rounded-xl border border-stone-700 focus:outline-none focus:border-amber-500"
             />
@@ -1491,7 +1512,10 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
         {categories.map(cat => (
           <button
             key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
+            onClick={() => {
+              setSelectedCategory(cat.id);
+              onCategoryChange?.(cat.id);
+            }}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               selectedCategory === cat.id
                 ? 'bg-amber-500 text-stone-950 font-bold shadow-md shadow-amber-950/40'
@@ -1507,13 +1531,8 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
       {activeHeritage && (
         <div className="mb-4 p-3.5 sm:p-4 rounded-3xl bg-stone-900/95 border-2 border-amber-500/80 shadow-2xl backdrop-blur flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-14 h-14 rounded-2xl overflow-hidden shrink-0 border border-amber-500/50 bg-stone-950 shadow">
-              <img 
-                src={getSafeHeritageImageUrl(activeHeritage.imageUrl)} 
-                alt={activeHeritage.name} 
-                className="w-full h-full object-cover" 
-                onError={handleImageError} 
-              />
+            <div className="w-12 h-12 rounded-2xl shrink-0 border border-amber-500/40 bg-stone-950 shadow flex items-center justify-center text-2xl">
+              <span>{getCategoryEmoji(activeHeritage.category)}</span>
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -1644,15 +1663,9 @@ export const CulturalMap: React.FC<CulturalMapProps> = ({
                             : 'bg-stone-950/70 hover:bg-stone-800/80 border-stone-800/80 hover:border-amber-500/40'
                         }`}
                       >
-                        {/* Thumbnail Image */}
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden shrink-0 bg-stone-900 border border-stone-800">
-                          <img
-                            src={getSafeHeritageImageUrl(item.imageUrl, item.id)}
-                            alt={item.name}
-                            loading="lazy"
-                            onError={handleImageError}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
+                        {/* Category Icon Badge (No illustration image) */}
+                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-400 flex items-center justify-center shrink-0 text-xl shadow-inner group-hover:scale-105 group-hover:bg-amber-500/20 transition-all">
+                          <span>{getCategoryEmoji(item.category)}</span>
                         </div>
 
                         <div className="flex-1 min-w-0">

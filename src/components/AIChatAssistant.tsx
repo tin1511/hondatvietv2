@@ -32,6 +32,7 @@ import { ttsService, TTSStatus, mobileAudioUnlocker } from '../services/ttsServi
 import { getTTSConfig, TTSConfig } from '../config/ttsConfig';
 import { ChatMessage, HeritageItem, AITourGuideConfig } from '../types';
 import { VoiceSettingsModal } from './VoiceSettingsModal';
+import { SafeMarkdownRenderer } from './SafeMarkdownRenderer';
 
 interface AIChatAssistantProps {
   initialContext?: HeritageItem | null;
@@ -46,6 +47,26 @@ const CULTURAL_SUGGESTIONS = [
   { vi: 'Món Cơm Hến Huế có nguồn gốc dân dã như thế nào?', en: 'What are the humble origins of Hue clam rice?' },
   { vi: 'Giải thích ngắn gọn cho học sinh về chiến thắng Bạch Đằng 938', en: 'Explain the 938 Bach Dang victory briefly for students.' }
 ];
+
+export const buildInitialWelcome = (
+  lang: string, 
+  config: AITourGuideConfig, 
+  isGuide: boolean, 
+  heritage?: HeritageItem | null
+): string => {
+  const isEn = lang === 'en';
+  if (isGuide) {
+    if (isEn) {
+      return `Hello everyone! I’m ${config.guideName || 'Bao An'}, your cultural tour guide on this journey. I am delighted to accompany you as we explore the rich heritage and thousand-year stories of Vietnam! Feel free to ask me about ${heritage?.name || 'Vietnamese landmarks'}, historical insights, photo spots, or authentic local food!`;
+    }
+    return config.welcomeGreeting || `Dạ em là ${config.guideName || 'Bảo An'} - Hướng dẫn viên du lịch văn hóa! Rất hân hạnh được đồng hành cùng quý cô bác, anh chị trong đoàn. Quý vị muốn em thuyết minh về ${heritage?.name || 'di sản Việt Nam'} hay tư vấn góc chụp ảnh, quán ngon cứ bảo em nhé!`;
+  } else {
+    if (isEn) {
+      return 'Hello! I’m the Vietnamese Culture & History Assistant. I provide factual historical knowledge, distinguishing documented history from folk legends. How may I assist your cultural exploration today?';
+    }
+    return 'Xin chào! Tôi là Trợ lý Lịch sử & Văn hóa Việt Nam. Tôi giải đáp các câu hỏi học thuật, phân biệt rạch ròi giữa chính sử và truyền thuyết dân gian. Hôm nay bạn muốn tìm hiểu về trang sử hay di sản nào?';
+  }
+};
 
 export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
   initialContext,
@@ -68,7 +89,7 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
       {
         id: 'welcome-msg',
         sender: 'assistant',
-        text: config.welcomeGreeting || isEnglish ? 'Hello everyone! I’m delighted to be your tour guide and companion on this journey.' : 'Dạ em chào quý cô bác, anh chị trong đoàn! Em rất vui được làm hướng dẫn viên du lịch đồng hành cùng quý vị.',
+        text: buildInitialWelcome(language, config, true, initialContext || null),
         timestamp: new Date().toISOString(),
         isTourGuideMode: true
       }
@@ -107,6 +128,7 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
   }, []);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Listen to config updates from Admin Studio
   useEffect(() => {
@@ -146,6 +168,23 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
       setSelectedHeritage(initialContext);
     }
   }, [initialContext]);
+
+  // Synchronize initial welcome greeting when language changes (preserving existing chats)
+  useEffect(() => {
+    setMessages((prev) => {
+      // Only refresh the initial welcome if the user hasn't started a conversation yet
+      if (prev.length === 1 && (prev[0].id === 'welcome-msg' || prev[0].id.startsWith('welcome-'))) {
+        return [
+          {
+            ...prev[0],
+            text: buildInitialWelcome(language, guideConfig, mode === 'tour_guide', selectedHeritage),
+            isTourGuideMode: mode === 'tour_guide'
+          }
+        ];
+      }
+      return prev;
+    });
+  }, [language, guideConfig, mode, selectedHeritage]);
 
   // Handle Speech-to-Text via Web Speech API
   const handleToggleRecord = () => {
@@ -220,6 +259,12 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
     if (!textToSend) setInput('');
     setLoading(true);
 
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       const conversationHistory = messages.map(m => ({
         role: (m.sender === 'user' ? 'user' : 'model') as 'user' | 'model',
@@ -231,7 +276,8 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
         conversationHistory,
         currentHeritageContext: selectedHeritage,
         language,
-        isTourGuideMode: isGuide
+        isTourGuideMode: isGuide,
+        signal: controller.signal
       });
 
       const assistantMsgId = 'msg-' + (Date.now() + 1);
@@ -293,15 +339,16 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
       const currentConfig = getTTSConfig();
       setTtsConfig(currentConfig);
 
-      const isEnglish = language === 'en';
+      const isVi = language === 'vi' || !language;
+      const langBcp47 = isEnglish ? 'en-US' : (isVi ? 'vi-VN' : `${language}-${language.toUpperCase()}`);
       ttsService.speak(text, {
-        lang: isEnglish ? 'en-US' : 'vi-VN',
-        provider: isEnglish ? 'web_speech' : (currentConfig.provider || 'vieneu'),
-        voice: isEnglish ? 'en-US' : (currentConfig.voice || 'Ngọc Lan'),
-        speaker: isEnglish ? 'en-US' : (currentConfig.voice || 'Ngọc Lan'),
+        lang: langBcp47,
+        provider: isVi ? (currentConfig.provider || 'vieneu') : 'web_speech',
+        voice: isVi ? (currentConfig.voice || 'Ngọc Lan') : undefined,
+        speaker: isVi ? (currentConfig.voice || 'Ngọc Lan') : undefined,
         onStatusChange: (status) => {
           setTtsStatusMap((prev) => ({ ...prev, [id]: status }));
-          setTtsProviderMap((prev) => ({ ...prev, [id]: ttsService.getActiveProviderName() }));
+          setTtsProviderMap((prev) => ({ ...prev, [id]: isVi ? ttsService.getActiveProviderName() : 'web_speech' }));
         },
         onEnd: () => {
           setSpeakingMsgId(null);
@@ -321,9 +368,7 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
       {
         id: 'welcome-msg',
         sender: 'assistant',
-        text: isGuide
-          ? (guideConfig.welcomeGreeting || `Dạ em là ${guideConfig.guideName}! Lịch sử đoàn mình dạo bước đã được làm mới. Quý vị cần em thuyết minh điểm nào tiếp theo cứ bảo em nhé!`)
-          : 'Lịch sử trò chuyện đã được làm mới. Tôi sẵn sàng cùng bạn khám phá văn hóa Việt Nam!',
+        text: buildInitialWelcome(language, guideConfig, isGuide, selectedHeritage),
         timestamp: new Date().toISOString(),
         isTourGuideMode: isGuide
       }
@@ -336,27 +381,15 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
     setMode(newMode);
     aiService.stopSpeaking();
     setSpeakingMsgId(null);
-    if (newMode === 'tour_guide') {
-      setMessages([
-        {
-          id: 'welcome-guide-' + Date.now(),
-          sender: 'assistant',
-          text: isEnglish ? `I’m ${guideConfig.guideName}, your cultural tour guide! I’m delighted to join you. Ask me about ${selectedHeritage?.name || 'Vietnamese heritage'}, photo spots, or local food!` : (guideConfig.welcomeGreeting || `Dạ em là ${guideConfig.guideName} - Hướng dẫn viên du lịch văn hóa! Rất hân hạnh được đồng hành cùng quý đoàn mình. Quý vị muốn em thuyết minh về ${selectedHeritage?.name || 'di sản Việt Nam'} hay tư vấn góc chụp ảnh, quán ngon cứ bảo em nhé!`),
-          timestamp: new Date().toISOString(),
-          isTourGuideMode: true
-        }
-      ]);
-    } else {
-      setMessages([
-        {
-          id: 'welcome-assistant-' + Date.now(),
-          sender: 'assistant',
-          text: ui('Xin chào! Tôi là Trợ lý Văn hóa Việt Nam. Tôi giải đáp các câu hỏi học thuật, phân biệt rạch ròi giữa chính sử và truyền thuyết dân gian.', 'Hello! I’m the Vietnamese Culture Assistant. I answer research questions and clearly distinguish documented history from folk legends.'),
-          timestamp: new Date().toISOString(),
-          isTourGuideMode: false
-        }
-      ]);
-    }
+    setMessages([
+      {
+        id: 'welcome-' + newMode + '-' + Date.now(),
+        sender: 'assistant',
+        text: buildInitialWelcome(language, guideConfig, newMode === 'tour_guide', selectedHeritage),
+        timestamp: new Date().toISOString(),
+        isTourGuideMode: newMode === 'tour_guide'
+      }
+    ]);
   };
 
   return (
@@ -401,11 +434,13 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
           <button
             onClick={() => setIsVoiceSettingsOpen(true)}
             className="px-2.5 sm:px-3 py-2 rounded-xl text-xs bg-stone-900 border border-amber-500/40 text-amber-300 hover:text-amber-200 hover:bg-stone-800 flex items-center gap-1.5 transition-all cursor-pointer shrink-0 min-h-[38px] shadow-sm"
-            title={ui('Cài đặt công nghệ đọc VieNeu AI hoặc tùy chỉnh tốc độ, giọng đọc','Configure VieNeu AI speech, voice, and reading speed')}
+            title={ui('Cài đặt công nghệ đọc VieNeu AI hoặc tùy chỉnh tốc độ, giọng đọc','Configure speech, voice, and reading speed')}
           >
             <Sliders className="w-3.5 h-3.5 text-amber-400" />
             <span className="font-semibold">
-              {ttsConfig.provider === 'vieneu' ? (isEnglish ? `Voice: VieNeu (${ttsConfig.voice || 'Ngọc Lan'})` : `Giọng: VieNeu (${ttsConfig.voice || 'Ngọc Lan'})`) : ui('Giọng: Trình duyệt','Voice: Browser')}
+              {isEnglish 
+                ? 'Voice: English (en-US)' 
+                : (ttsConfig.provider === 'vieneu' ? `Giọng: VieNeu (${ttsConfig.voice || 'Ngọc Lan'})` : 'Giọng: Trình duyệt')}
             </span>
           </button>
 
@@ -473,11 +508,11 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
                   type="button"
                   onClick={() => setIsVoiceSettingsOpen(true)}
                   className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-semibold flex items-center gap-1 transition-all cursor-pointer"
-                  title={ui('Bấm để tùy chỉnh giọng đọc VieNeu AI cho HDV Bảo An','Click to customize the AI tour guide voice')}
+                  title={ui('Bấm để tùy chỉnh giọng đọc cho HDV Bảo An','Click to customize the AI tour guide voice')}
                 >
                   <Sparkles className="w-3 h-3 text-amber-400" />
                   <span>
-                    {ttsConfig.provider === 'vieneu' ? `VieNeu AI (${ttsConfig.voice || 'Ngọc Lan'})` : isEnglish ? 'Browser Voice' : 'Giọng Trình duyệt'}
+                    {isEnglish ? 'English Voice (en-US)' : (ttsConfig.provider === 'vieneu' ? `VieNeu AI (${ttsConfig.voice || 'Ngọc Lan'})` : 'Giọng Trình duyệt')}
                   </span>
                 </button>
               </div>
@@ -563,28 +598,34 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
                 className={`max-w-[85%] sm:max-w-[78%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-md ${
                   isUser
                     ? 'bg-amber-600 text-stone-950 font-medium rounded-tr-none'
-                    : 'bg-stone-800/90 text-stone-200 border border-stone-700/60 rounded-tl-none whitespace-pre-wrap'
+                    : 'bg-stone-800/90 text-stone-200 border border-stone-700/60 rounded-tl-none'
                 }`}
               >
-                <div>{msg.text}</div>
+                {isUser ? (
+                  <div className="whitespace-pre-wrap">{msg.text}</div>
+                ) : (
+                  <SafeMarkdownRenderer content={msg.text} />
+                )}
 
                 {/* Assistant message action controls */}
                 {!isUser && (
                   <div className="mt-3 pt-2 border-t border-stone-700/50 flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-400">
                     <div className="flex items-center gap-1.5 text-[10px] text-stone-500">
                       <span>
-                        {mode === 'tour_guide' ? `HDV ${guideConfig.guideName} • ` : 'Trợ lý AI • '}
+                        {mode === 'tour_guide' ? `${isEnglish ? 'Guide ' : 'HDV '}${guideConfig.guideName} • ` : ui('Trợ lý AI • ','AI Assistant • ')}
                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {/* Provider Badge */}
                       <span className={`px-2 py-0.5 rounded font-bold border text-[9px] flex items-center gap-1 ${
-                        (ttsProviderMap[msg.id] || ttsConfig.provider) === 'vieneu'
+                        !isEnglish && (ttsProviderMap[msg.id] || ttsConfig.provider) === 'vieneu'
                           ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                           : 'bg-stone-800 text-stone-300 border-stone-700'
                       }`}>
                         <span>🎙️</span>
                         <span>
-                          {(ttsProviderMap[msg.id] || ttsConfig.provider) === 'vieneu' ? 'VieNeu AI' : 'Giọng Máy'}
+                          {isEnglish 
+                            ? 'English Voice' 
+                            : ((ttsProviderMap[msg.id] || ttsConfig.provider) === 'vieneu' ? 'VieNeu AI' : 'Giọng Máy')}
                         </span>
                       </span>
                     </div>
@@ -601,7 +642,7 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
                             ? 'bg-rose-950/80 border border-rose-500/40 text-rose-300'
                             : 'bg-stone-900/80 hover:bg-stone-700 text-stone-300 border border-stone-700'
                         }`}
-                        title={ui("Nghe hướng dẫn viên đọc bằng VieNeu AI (Text-to-Speech)","Listen to the guide using VieNeu AI text-to-speech")}
+                        title={isEnglish ? "Listen to the guide in English" : "Nghe hướng dẫn viên đọc bằng VieNeu AI (Text-to-Speech)"}
                       >
                         {ttsStatusMap[msg.id] === 'playing' ? (
                           <>
@@ -611,17 +652,17 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
                         ) : ttsStatusMap[msg.id] === 'generating' || ttsStatusMap[msg.id] === 'loading' ? (
                           <>
                             <RefreshCw className="w-3 h-3 animate-spin text-amber-400" />
-                            <span>⏳ VieNeu đang đọc...</span>
+                            <span>{ui("⏳ Đang chuẩn bị đọc...", "⏳ Reading aloud...")}</span>
                           </>
                         ) : ttsStatusMap[msg.id] === 'error' ? (
                           <>
                             <RefreshCw className="w-3 h-3 text-rose-400" />
-                            <span>🔄 Thử lại</span>
+                            <span>{ui("🔄 Thử lại", "🔄 Retry")}</span>
                           </>
                         ) : (
                           <>
                             <Volume2 className="w-3.5 h-3.5 text-amber-400" />
-                            <span>🔊 Đọc (VieNeu)</span>
+                            <span>{isEnglish ? "🔊 Listen (English)" : "🔊 Đọc (VieNeu AI)"}</span>
                           </>
                         )}
                       </button>
@@ -769,7 +810,7 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
               ? 'bg-red-600 text-white animate-pulse shadow-lg shadow-red-900/50' 
               : 'bg-stone-800 text-stone-200 hover:bg-stone-700 hover:text-amber-300 border border-stone-700'
           }`}
-          title={isRecording ? ui('Đang nghe... Bấm để dừng','Listening... Click to stop') : ui('Bấm để nói bằng giọng nói tiếng Việt','Click to speak')}
+          title={isRecording ? ui('Đang nghe... Bấm để dừng','Listening... Click to stop') : ui('Bấm để nói bằng giọng nói','Click to speak')}
         >
           {isRecording ? (
             <>
@@ -821,3 +862,5 @@ export const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
     </div>
   );
 };
+
+export default AIChatAssistant;

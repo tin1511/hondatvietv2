@@ -125,9 +125,39 @@
         "data": { "type": "object" }
       },
       "required": ["id", "updatedAt", "configType"]
+    },
+    "TourismKnowledgePlace": {
+      "title": "TourismKnowledgePlace",
+      "description": "Standardized Vietnam tourism and heritage destination knowledge record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "aliases": { "type": "array" },
+        "provinceCode": { "type": "string" },
+        "provinceName": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "history": { "type": "string" },
+        "culturalValue": { "type": "string" },
+        "address": { "type": "string" },
+        "coordinates": { "type": "object" },
+        "visitorInfo": { "type": "object" },
+        "relatedPlaces": { "type": "array" },
+        "sources": { "type": "array" },
+        "verificationStatus": { "type": "string", "enum": ["verified", "folk_legend", "unverified"] },
+        "lastVerifiedAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "provinceCode", "category", "description", "history", "culturalValue", "sources", "verificationStatus"]
     }
   },
   "firestore": {
+    "/tourism_knowledge/{placeId}": {
+      "schema": "TourismKnowledgePlace",
+      "description": "Standardized Vietnam tourism knowledge destinations collection"
+    },
     "/system_config/{configId}": {
       "schema": "SystemConfig",
       "description": "Global system configuration documents for AI and TTS APIs"
@@ -158,3 +188,4 @@
     }
   }
 }
+

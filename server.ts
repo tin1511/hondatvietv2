@@ -21,7 +21,7 @@ const PORT = cliPort || (process.env.PORT ? parseInt(process.env.PORT, 10) : 300
 app.use(express.json({ limit: '25mb' }));
 
 // Centralized AI Model Configuration
-export const AI_MODEL = "gemini-flash-latest";
+export const AI_MODEL = "gemini-3.1-flash-lite";
 
 // Lazy Gemini API Client
 let geminiClient: GoogleGenAI | null = null;
@@ -43,6 +43,56 @@ function getGemini(): GoogleGenAI {
   return geminiClient;
 }
 
+// In-Memory High-Speed LRU + TTL Cache for AI Endpoints
+interface ServerAICacheEntry {
+  timestamp: number;
+  data: any;
+}
+
+class ServerLRUTTLCache {
+  private cache = new Map<string, ServerAICacheEntry>();
+  private maxEntries: number;
+  private ttlMs: number;
+
+  constructor(maxEntries = 250, ttlMs = 45 * 60 * 1000) {
+    this.maxEntries = maxEntries;
+    this.ttlMs = ttlMs;
+  }
+
+  get(key: string): any | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > this.ttlMs) {
+      this.cache.delete(key);
+      return null;
+    }
+    // Refresh position for LRU
+    this.cache.delete(key);
+    this.cache.set(key, entry);
+    return entry.data;
+  }
+
+  set(key: string, data: any): void {
+    if (this.cache.size >= this.maxEntries) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey) this.cache.delete(oldestKey);
+    }
+    this.cache.set(key, { timestamp: Date.now(), data });
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+export const serverAICache = new ServerLRUTTLCache(300, 45 * 60 * 1000);
+
+export function sanitizeHeritageContext(ctx: any): any {
+  if (!ctx || typeof ctx !== 'object') return ctx;
+  const { imageUrl, historicImageUrl, audioUrl, ...safeCtx } = ctx;
+  return safeCtx;
+}
+
 /**
  * Executes generateContent with resilience against 503 (model experiencing high demand),
  * 429 (rate limits/quota limits), and transient unavailable errors.
@@ -55,12 +105,11 @@ function getGemini(): GoogleGenAI {
 async function generateContentWithResilience(
   ai: GoogleGenAI,
   requestParams: { contents: any; config?: any },
-  preferredModel = 'gemini-flash-latest'
+  preferredModel = 'gemini-3.1-flash-lite'
 ) {
   const candidateModels = [
     preferredModel,
     'gemini-3.1-flash-lite',
-    'gemini-3.8-flash',
     'gemini-flash-latest'
   ].filter((val, idx, self) => self.indexOf(val) === idx);
 
@@ -122,7 +171,7 @@ async function executeUnifiedAIRequest(params: {
   apiKey?: string;
 }): Promise<{ text: string; provider: string; model: string; responseTimeMs: number }> {
   const provider = params.provider || process.env.VITE_AI_PROVIDER || 'gemini';
-  const model = params.model || process.env.VITE_AI_MODEL || 'gemini-flash-latest';
+  const model = params.model || process.env.VITE_AI_MODEL || 'gemini-3.1-flash-lite';
   const startTime = Date.now();
 
   const tryCall = async (p: string, m: string): Promise<string> => {
@@ -241,7 +290,7 @@ async function executeUnifiedAIRequest(params: {
         config: {
           systemInstruction: params.systemPrompt
         }
-      }, m || 'gemini-flash-latest');
+      }, m || 'gemini-3.1-flash-lite');
 
       return response.text || '';
     }
@@ -512,6 +561,12 @@ The selected output language is ${languageNames[language] || language}. Write al
 app.post('/api/ai/storyteller', async (req: Request, res: Response) => {
   const { heritageName, category, region, history, period, mode = 'student', language = 'vi' } = req.body;
 
+  const cacheKey = `story_${String(heritageName).toLowerCase().trim()}_${mode}_${language}_${(history || '').slice(0, 40)}`;
+  const cachedStory = serverAICache.get(cacheKey);
+  if (cachedStory) {
+    return res.json({ success: true, data: cachedStory, isCached: true });
+  }
+
   try {
     const ai = getGemini();
 
@@ -557,7 +612,9 @@ Yêu cầu:
     });
 
     const parsed = JSON.parse(response.text || '{}');
-    return res.json({ success: true, data: deepCleanVietnamese(parsed) });
+    const cleaned = deepCleanVietnamese(parsed);
+    serverAICache.set(cacheKey, cleaned);
+    return res.json({ success: true, data: cleaned });
   } catch (error: any) {
     console.info('[AI Storyteller] Serving curated fallback heritage story.');
     // Graceful fallback to rich curated heritage story so users never get blocked by 503
@@ -606,50 +663,34 @@ app.post('/api/ai/chat', async (req: Request, res: Response) => {
     let systemPrompt = customSystemPrompt || '';
     if (!systemPrompt) {
       if (isTourGuideMode) {
-        const etiquetteFormatted = (guideCfg.etiquetteRules || []).map((r: string) => `   - ${r}`).join('\n');
-        systemPrompt = `Bạn là "${guideCfg.guideName}" - ${guideCfg.title} với hơn ${guideCfg.experienceYears || 10} năm kinh nghiệm dẫn đoàn du khách trong nước và quốc tế khám phá di sản Việt Nam.
-BỐI CẢNH & ĐIỂM DỪNG CHÂN ĐANG THAM QUAN:
-${currentHeritageContext ? JSON.stringify(currentHeritageContext) : 'Các tuyến điểm du lịch di sản, danh thắng và văn hóa Việt Nam'}.
-
-PHONG CÁCH XƯNG HÔ & DẪN DẮT (Phong cách: ${guideCfg.speakingStyle || 'warm_friendly'}):
-1. Luôn mở đầu bằng lời xưng hô thân tình, chuyên nghiệp của hướng dẫn viên du lịch (ví dụ: "Dạ em là ${guideCfg.guideName}, xin kính chào quý cô bác, anh chị!", "Chào quý đoàn mình ạ!").
-2. Đóng vai trò là một hướng dẫn viên du lịch thực thụ đang cầm cờ và micro thuyết minh trực tiếp tại thực địa. Ngôn từ sống động, dẫn dắt không gian ("Quý vị nhìn sang hướng này...", "Bước qua cổng tam quan...", "Ngước nhìn hoa văn vì kèo...").
-3. Thuyết minh kết hợp giữa lịch sử hào hùng, niên đại chính xác, kiến trúc độc đáo và nét đẹp nhân văn.
-4. Phân biệt rõ chính sử (đã thẩm định) và giai thoại/truyền tích dân gian (để du khách vừa hiểu đúng vừa cảm nhận trọn vẹn hồn cốt di sản).
-5. Luôn lồng ghép các chỉ dẫn ứng xử văn minh di sản:
-${etiquetteFormatted}
-6. Mẹo hướng dẫn viên thực tế: góc chụp ảnh đẹp nhất, thời điểm ánh sáng lý tưởng, món ăn đặc sản địa phương đúng chuẩn của người bản xứ và quán ăn uy tín gần đó.
-7. Tri thức huấn luyện độc quyền từ Ban Quản Trị Di Sản:
-${guideCfg.customKnowledgePrompt || 'Chưa có thêm ghi chú.'}
-8. Đa ngôn ngữ: Nếu du khách hỏi bằng tiếng Anh/Pháp/Nhật/Hàn/Trung, hãy thuyết minh bằng ngôn ngữ tương ứng chuẩn phong thái Hướng dẫn viên Quốc tế!`;
+        systemPrompt = `Bạn là "${guideCfg.guideName}" - Hướng dẫn viên du lịch chuyên nghiệp của nền tảng "Hồn Đất Việt".
+MỤC TIÊU VÀ NGUYÊN TẮC THUYẾT MINH:
+1. Trả lời TRỰC TIẾP vào trọng tâm câu hỏi của du khách, tuyệt đối không chào hỏi dài dòng lan man. Mở đầu bằng tối đa 1 câu ngắn gọn thân tình, sau đó vào ngay nội dung chính.
+2. Nhận diện chính xác ý định: món ăn đặc sản, di tích lịch sử, văn hóa truyền thống, chợ địa phương, lịch trình tham quan hoặc hướng dẫn trải nghiệm.
+3. Trình bày có cấu trúc rõ ràng bằng Markdown (tiêu đề ###, gạch đầu dòng súc tích, in đậm từ khóa quan trọng).
+4. Phân biệt rạch ròi giữa chính sử đã được ghi nhận và các truyền thuyết, giai thoại dân gian.
+5. Tuyệt đối không bịa đặt giá vé, giờ mở cửa, địa chỉ hoặc thông tin thời gian thực. Khi không chắc chắn, phải nêu rõ: "Quý khách nên liên hệ ban quản lý di tích hoặc người dân địa phương để kiểm tra thông tin cập nhật mới nhất".
+6. Cung cấp các mẹo hướng dẫn viên thực tế: thời điểm tham quan lý tưởng, góc ảnh đẹp, lưu ý trang phục văn minh nơi tôn nghiêm.
+${currentHeritageContext ? `Bối cảnh điểm đến du khách đang tham quan: ${JSON.stringify(currentHeritageContext)}.` : ''}`;
       } else {
-        systemPrompt = `Bạn là trợ lý AI của Hồn Đất Việt, một ứng dụng tìm hiểu lịch sử, văn hóa và di sản Việt Nam.
-
-Luôn trả lời tự nhiên, rõ ràng và dễ hiểu.
-
-Khi người dùng hỏi về:
-- lịch sử Việt Nam
-- di tích
-- danh lam thắng cảnh
-- văn hóa
-- lễ hội
-- nhân vật lịch sử
-- địa danh
-- bảo tàng
-- di sản
-- kiến trúc
-- ẩm thực truyền thống
-
-hãy ưu tiên cung cấp thông tin chính xác, dễ hiểu và có cấu trúc.
-
-Không tự bịa thông tin nếu không chắc chắn.
-Nếu thông tin có thể thay đổi theo thời gian, hãy nói rõ khi cần kiểm tra nguồn mới.
-
-Bối cảnh di sản người dùng đang theo dõi: ${currentHeritageContext ? JSON.stringify(currentHeritageContext) : 'Chung về văn hóa di sản Việt Nam'}.`;
+        systemPrompt = `Bạn là Trợ lý Lịch sử & Văn hóa Việt Nam của nền tảng "Hồn Đất Việt".
+MỤC TIÊU VÀ NGUYÊN TẮC:
+1. Trả lời trực tiếp câu hỏi, tự nhiên, chính xác, sâu sắc và dễ hiểu.
+2. Cung cấp kiến thức có cấu trúc rõ ràng về lịch sử, di tích, danh thắng, văn hóa, phong tục, lễ hội, kiến trúc và ẩm thực Việt Nam.
+3. Phân biệt rạch ròi giữa lịch sử xác minh và truyền thuyết, huyền tích dân gian.
+4. Không tự bịa thông tin thời gian thực (giá vé, giờ mở cửa) khi chưa chắc chắn.
+${currentHeritageContext ? `Bối cảnh di sản đang tìm hiểu: ${JSON.stringify(currentHeritageContext)}.` : ''}`;
       }
     }
 
-    if (language && language !== 'vi') {
+    // Strict Language Enforcement in System Prompt
+    if (!language || language === 'vi') {
+      systemPrompt += `\n\n[QUY TẮC NGÔN NGỮ BẮT BUỘC]:
+Người dùng đang sử dụng giao diện Tiếng Việt (VN).
+BẠN BẮT BUỘC PHẢI TRẢ LỜI TOÀN BỘ CÂU TRẢ LỜI, LỜI CHÀO, THUYẾT MINH VÀ HƯỚNG DẪN HOÀN TOÀN BẰNG TIẾNG VIỆT CHUẨN MỰC, TỰ NHIÊN, VĂN MINH VÀ ẤM ÁP.
+Tuyệt đối không chào hỏi hay trả lời bằng tiếng Anh hoặc ngôn ngữ khác (kể cả khi câu hỏi của người dùng có chứa từ tiếng Anh, trừ phi người dùng yêu cầu dịch sang tiếng Anh cụ thể).
+Mọi danh từ riêng, thuật ngữ văn hóa, lịch sử và địa danh phải dùng tiếng Việt có dấu chuẩn xác.`;
+    } else {
       const langNames: Record<string, string> = {
         en: 'English',
         fr: 'French (Français)',
@@ -658,12 +699,15 @@ Bối cảnh di sản người dùng đang theo dõi: ${currentHeritageContext ?
         zh: 'Simplified Chinese (中文)'
       };
       const targetLangName = langNames[language] || language;
-      systemPrompt += `\n\n[LANGUAGE REQUIREMENT]: The user has explicitly selected "${targetLangName}" (language code: ${language}) as their active interface and guide language. You MUST respond, explain, and converse fluently and respectfully in ${targetLangName}, while preserving authentic Vietnamese landmark names and cultural proper nouns with appropriate context.`;
+      systemPrompt += `\n\n[CRITICAL LANGUAGE REQUIREMENT]:
+The user has explicitly selected "${targetLangName}" (language code: ${language}) as their active interface and tour guide language.
+YOU MUST FORMULATE AND DELIVER YOUR ENTIRE RESPONSE, GREETINGS, EXPLANATIONS, AND TOUR RECOMMENDATIONS IN ${targetLangName.toUpperCase()}.
+Do NOT respond in Vietnamese or mix other languages, except for preserving authentic Vietnamese historical names, cultural landmarks, monuments, and authentic culinary dishes (e.g., "Chùa Cầu", "Văn Miếu - Quốc Tử Giám", "Phở Bò", "Bún Chả") accompanied by clear ${targetLangName} explanations.`;
     }
 
     const aiRes = await executeUnifiedAIRequest({
       provider: overrideProvider,
-      model: overrideModel,
+      model: overrideModel || 'gemini-3.1-flash-lite',
       message,
       conversationHistory,
       systemPrompt,
@@ -672,39 +716,29 @@ Bối cảnh di sản người dùng đang theo dõi: ${currentHeritageContext ?
       baseUrl
     });
 
+    const defaultWelcomeVi = isTourGuideMode 
+      ? (guideCfg.welcomeGreeting || `Dạ em là ${guideCfg.guideName}, rất vui được hướng dẫn quý đoàn mình khám phá di sản!`) 
+      : 'Trợ lý Văn hóa Việt Nam luôn sẵn sàng đồng hành cùng bạn.';
+    const defaultWelcomeEn = isTourGuideMode 
+      ? `I’m ${guideCfg.guideName}, your cultural tour guide! Delighted to accompany you in exploring Vietnamese heritage.` 
+      : 'Vietnamese Cultural Assistant is ready to accompany your journey.';
+
     return res.json({
       success: true,
-      reply: cleanVietnameseText(aiRes.text) || (isTourGuideMode ? `Dạ em là ${guideCfg.guideName}, rất vui được hướng dẫn quý đoàn mình khám phá di sản!` : 'Trợ lý Văn hóa Việt Nam luôn sẵn sàng đồng hành cùng bạn.'),
+      reply: cleanVietnameseText(aiRes.text) || (language === 'en' ? defaultWelcomeEn : defaultWelcomeVi),
       provider: aiRes.provider,
       model: aiRes.model,
       responseTimeMs: aiRes.responseTimeMs,
       guideName: isTourGuideMode ? guideCfg.guideName : undefined
     });
   } catch (error: any) {
-    console.info('[AI Chatbot] Serving curated fallback chat response.');
-    
-    let fallbackReply = '';
-    if (isTourGuideMode) {
-      const guideName = guideCfg.guideName || 'Bảo An';
-      if (currentHeritageContext?.name) {
-        fallbackReply = `Dạ em là ${guideName} - hướng dẫn viên của đoàn mình đây ạ! Về "${currentHeritageContext.name}": Đây là di sản vô cùng linh thiêng và tráng lệ với lịch sử "${currentHeritageContext.history || 'nhiều giá trị truyền thống'}". Khi tham quan, quý đoàn mình nhớ lưu ý trang phục lịch sự và giữ gìn vệ sinh chung nhé. Em luôn sẵn sàng giải đáp thêm các góc chụp ảnh đẹp hoặc món ăn đặc sản gần đây!`;
-      } else {
-        fallbackReply = `Dạ em là ${guideName}, hướng dẫn viên du lịch văn hóa! Rất hân hạnh được đồng hành cùng quý cô bác, anh chị. Quý đoàn mình muốn em thuyết minh về di sản nào, tìm quán ăn ngon hay hướng dẫn lộ trình tham quan cứ bảo em nhé!`;
-      }
-    } else {
-      fallbackReply = 'AI hiện đang quá tải hoặc đã hết hạn mức. Vui lòng thử lại sau. ';
-      if (currentHeritageContext?.name) {
-        fallbackReply += `Về "${currentHeritageContext.name}": Đây là di sản văn hóa quý giá với lịch sử: "${currentHeritageContext.history || 'nhiều giá trị truyền thống'}". Bạn có thể xem thêm chi tiết trong bản đồ di sản hoặc thử lại câu hỏi trong giây lát.`;
-      } else {
-        fallbackReply += 'Bạn có thể khám phá kho tư liệu di sản, nghe truyện kể văn hóa hoặc xem bản đồ các điểm đến lịch sử trên thanh điều hướng!';
-      }
-    }
-
-    return res.json({
-      success: true,
-      reply: fallbackReply,
-      guideName: isTourGuideMode ? guideCfg.guideName : undefined,
-      isFallback: true
+    console.error('[AI Chatbot] Gemini API request failed:', error?.message || error);
+    const errorMsgVi = `Hệ thống AI Hướng Dẫn Viên hiện đang gặp sự cố kết nối hoặc quá tải (${error?.message || 'vui lòng thử lại sau'}). Quý khách vui lòng gửi lại câu hỏi trong giây lát nhé.`;
+    const errorMsgEn = `The AI Tour Guide system is currently experiencing a connection issue or high traffic (${error?.message || 'please try again later'}). Please resend your question in a moment.`;
+    return res.status(503).json({
+      success: false,
+      error: language === 'en' ? errorMsgEn : errorMsgVi,
+      guideName: isTourGuideMode ? guideCfg.guideName : undefined
     });
   }
 });
@@ -867,8 +901,15 @@ Nội dung ghi âm thô:
 // 6. AI REVIEW SYNTHESIS (Google Places)
 // ==========================================
 app.post('/api/ai/analyze-reviews', async (req: Request, res: Response) => {
+  const { placeName, rating, userRatingCount, sampleReviews = [], placeType } = req.body;
+
+  const cacheKey = `reviews_${String(placeName).toLowerCase().trim()}_${placeType || ''}`;
+  const cachedReview = serverAICache.get(cacheKey);
+  if (cachedReview) {
+    return res.json({ success: true, data: cachedReview, isCached: true });
+  }
+
   try {
-    const { placeName, rating, userRatingCount, sampleReviews = [], placeType } = req.body;
 
     const ai = getGemini();
     const systemPrompt = `Bạn là Chuyên viên Phân tích Đánh giá Địa điểm Văn hóa & Ẩm thực của Hồn Đất Việt.
@@ -917,7 +958,9 @@ Dữ liệu review mẫu cung cấp: ${JSON.stringify(sampleReviews)}`,
     });
 
     const parsed = JSON.parse(response.text || '{}');
-    return res.json({ success: true, data: deepCleanVietnamese(parsed) });
+    const cleaned = deepCleanVietnamese(parsed);
+    serverAICache.set(cacheKey, cleaned);
+    return res.json({ success: true, data: cleaned });
   } catch (error: any) {
     console.info('[HeritageAI Reviews] Providing fallback review summary on peak demand.');
     const { placeName } = req.body;
@@ -1007,9 +1050,16 @@ Danh sách địa điểm cần đánh giá: ${JSON.stringify(places)}`,
 // 8. AI SMART CULTURAL ITINERARY PLANNER
 // ==========================================
 app.post('/api/ai/generate-itinerary', async (req: Request, res: Response) => {
-  try {
-    const { destination, duration = '1 ngày', interests = [], budget = 'vừa phải', companion = 'cá nhân' } = req.body;
+  const { destination, duration = '1 ngày', interests = [], budget = 'vừa phải', companion = 'cá nhân' } = req.body;
 
+  const sortedInterests = Array.isArray(interests) ? [...interests].sort().join(',') : '';
+  const cacheKey = `itinerary_${String(destination).toLowerCase().trim()}_${duration}_${sortedInterests}_${budget}_${companion}`;
+  const cachedItinerary = serverAICache.get(cacheKey);
+  if (cachedItinerary) {
+    return res.json({ success: true, itinerary: cachedItinerary, isCached: true });
+  }
+
+  try {
     const ai = getGemini();
     const systemPrompt = `Bạn là Chuyên gia Thiết kế Lịch trình Du lịch Văn hóa Thông minh của Hồn Đất Việt.
 Mục tiêu:
@@ -1064,7 +1114,9 @@ Tối ưu hóa:
     });
 
     const parsed = JSON.parse(response.text || '{}');
-    return res.json({ success: true, itinerary: deepCleanVietnamese(parsed) });
+    const cleaned = deepCleanVietnamese(parsed);
+    serverAICache.set(cacheKey, cleaned);
+    return res.json({ success: true, itinerary: cleaned });
   } catch (error: any) {
     console.info('[HeritageAI Itinerary] Serving curated itinerary fallback on high demand.');
     const { destination = 'Hà Nội', duration = '1 ngày' } = req.body;

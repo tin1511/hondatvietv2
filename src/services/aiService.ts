@@ -16,6 +16,7 @@ import { ttsService, TTSOptions } from './ttsService';
 import { speechService, SpeechRecognitionOptions } from './speechService';
 import { LandmarkPhotoItem, VIETNAM_LANDMARK_PHOTOS } from '../data/landmarkImagesDatabase';
 import { HERITAGE_DATABASE } from '../data/vietnamHeritageData';
+import { generateOfflineTourGuideReply } from './offlineGuideService';
 
 export const AI_MODEL = 'gemini-flash-latest';
 
@@ -278,7 +279,7 @@ export const aiService = {
   },
 
   /**
-   * AI Cultural Chatbot ("Trợ lý / Hướng dẫn viên AI Việt Nam") (With Offline Fallback)
+   * AI Tour Guide & Cultural Chatbot (Powered directly by Gemini API)
    */
   async chatWithAssistant(params: {
     message: string;
@@ -286,25 +287,53 @@ export const aiService = {
     currentHeritageContext?: any;
     language?: string;
     isTourGuideMode?: boolean;
+    signal?: AbortSignal;
   }): Promise<string> {
+    // If client is genuinely offline (no internet connectivity)
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      return getOfflineTourGuideReply(params.message);
+      if (params.language === 'en') {
+        return `⚡ **[OFFLINE MODE - NO INTERNET]**\nYour device is currently disconnected from the internet. Local heritage knowledge is saved in the offline manager. Please connect to the internet to chat live with the Gemini AI Tour Guide.`;
+      }
+      try {
+        const rawReply = await generateOfflineTourGuideReply(params.message, params.currentHeritageContext);
+        return `⚡ **[CHẾ ĐỘ NGOẠI TUYẾN - KHÔNG CÓ INTERNET]**\nThiết bị đang ngắt kết nối mạng. Em xin trích xuất dữ liệu di sản lưu sẵn trong máy:\n\n${cleanVietnameseText(rawReply)}`;
+      } catch {
+        return '⚡ **[CHẾ ĐỘ NGOẠI TUYẾN]** Hiện tại thiết bị không có kết nối Internet để kết nối tới Gemini Cloud. Quý vị vui lòng kết nối mạng để trò chuyện cùng AI Hướng Dẫn Viên nhé.';
+      }
     }
 
     try {
+      // Send trimmed conversation history (last 6 messages max) to keep context lean and fast
+      const trimmedHistory = (params.conversationHistory || []).slice(-6);
+
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
+        body: JSON.stringify({
+          message: params.message,
+          conversationHistory: trimmedHistory,
+          currentHeritageContext: params.currentHeritageContext,
+          language: params.language || 'vi',
+          isTourGuideMode: params.isTourGuideMode ?? true
+        }),
+        signal: params.signal
       });
+
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Trợ lý AI hiện đang bận');
+        throw new Error(data.error || 'Gemini API phản hồi không thành công');
       }
+
       return cleanVietnameseText(data.reply);
-    } catch (err) {
-      console.warn('AI Chat Assistant offline fallback:', err);
-      return getOfflineTourGuideReply(params.message);
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        throw err;
+      }
+      console.error('Gemini chatWithAssistant request failed:', err);
+      if (params.language === 'en') {
+        return `I apologize, the AI Tour Guide is currently experiencing a connection delay (${err.message || 'request timed out'}). Please try again in a moment!`;
+      }
+      return `Dạ em rất xin lỗi quý khách, hệ thống AI Hướng Dẫn Viên hiện đang gặp trục trặc kết nối (${err.message || 'thời gian chờ quá lâu'}). Quý vị vui lòng thử lại sau giây lát hoặc gửi lại câu hỏi nhé!`;
     }
   },
 

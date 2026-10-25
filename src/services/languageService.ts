@@ -98,12 +98,12 @@ export const DICTIONARY: Translations = {
     zh: 'AI 虚拟导游'
   },
   'nav.map': {
-    vi: 'Bản đồ',
-    en: 'Map',
-    fr: 'Carte',
-    ja: '地図',
-    ko: '지도',
-    zh: '文化地图'
+    vi: 'Khám phá',
+    en: 'Explore',
+    fr: 'Explorer',
+    ja: '探索',
+    ko: '탐색',
+    zh: '探索'
   },
   'nav.food': {
     vi: 'Ăn uống & Vui chơi',

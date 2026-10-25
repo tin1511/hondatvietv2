@@ -46,6 +46,7 @@ import { AITourGuideTrainer } from './AITourGuideTrainer';
 import { AdminStoryEditModal } from './AdminStoryEditModal';
 import { AdminAIDashboard } from './AdminAIDashboard';
 import { AdminRecognitionModal } from './AdminRecognitionModal';
+import { AdminKnowledgeBase } from './AdminKnowledgeBase';
 
 interface AdminDashboardProps {
   currentUser?: UserProfile;
@@ -58,7 +59,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUserChange
 }) => {
   const [user, setUser] = useState<UserProfile>(propsUser || storageService.getCurrentUser());
-  const [activeTab, setActiveTab] = useState<'audit_logs' | 'users' | 'pending' | 'heritages' | 'places' | 'landmarks' | 'ai_status' | 'tour_guide' | 'recognition' | 'branding'>('audit_logs');
+  const [activeTab, setActiveTab] = useState<'audit_logs' | 'users' | 'pending' | 'heritages' | 'places' | 'landmarks' | 'ai_status' | 'tour_guide' | 'recognition' | 'branding' | 'knowledge_base'>('knowledge_base');
   const [contributions, setContributions] = useState<CommunityContribution[]>([]);
   const [heritages, setHeritages] = useState<HeritageItem[]>(storageService.getHeritages());
   const [placesMap, setPlacesMap] = useState<Record<string, PlaceItem[]>>(storageService.getPlaces());
@@ -595,7 +596,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             onScroll={handleTabsScroll}
             className="flex gap-2 border-b border-stone-800 pb-3 overflow-x-auto custom-scrollbar scroll-smooth px-8"
           >
-            
+            {/* TAB: KNOWLEDGE BASE */}
+            <button
+              onClick={() => setActiveTab('knowledge_base')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                activeTab === 'knowledge_base'
+                  ? 'bg-amber-500 text-stone-950 shadow-md ring-1 ring-amber-400'
+                  : 'bg-stone-900 text-stone-400 hover:text-stone-200 hover:bg-stone-800'
+              }`}
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span>Quản Lý Kho Tri Thức</span>
+            </button>
+
             {/* TAB 1: AUDIT LOGS */}
             <button
               onClick={() => setActiveTab('audit_logs')}
@@ -2274,6 +2287,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           </div>
         </div>
+      )}
+
+      {/* TAB PANEL: KNOWLEDGE BASE MANAGEMENT */}
+      {activeTab === 'knowledge_base' && (
+        <AdminKnowledgeBase />
       )}
 
       {/* Admin Modals */}

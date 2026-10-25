@@ -11,8 +11,9 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
-import { MobileAppDownloadModal } from './MobileAppDownloadModal';
 import { useLanguage } from '../hooks/useLanguage';
+
+const MobileAppDownloadModal = React.lazy(() => import('./MobileAppDownloadModal').then(m => ({ default: m.MobileAppDownloadModal })));
 
 interface MobileAppDownloadBannerProps {
   onOpenModal?: () => void;
@@ -116,11 +117,13 @@ export const MobileAppDownloadBanner: React.FC<MobileAppDownloadBannerProps> = (
       </section>
 
       {/* Internal Modal Fallback if not controlled by parent */}
-      {!onOpenModal && (
-        <MobileAppDownloadModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
+      {!onOpenModal && isModalOpen && (
+        <React.Suspense fallback={null}>
+          <MobileAppDownloadModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+          />
+        </React.Suspense>
       )}
     </>
   );

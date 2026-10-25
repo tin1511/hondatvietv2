@@ -28,6 +28,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Vietnam Tourism Knowledge Base (Public read, Admin write)
+    match /tourism_knowledge/{placeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Grandparents oral stories (Private, Family, or Public read; Owner write)
     match /familyStories/{storyId} {
       allow read: if resource.data.visibility == 'public' || 

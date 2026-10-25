@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Download, Smartphone, X, CheckCircle2, Share } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
-import { MobileAppDownloadModal } from './MobileAppDownloadModal';
+
+const MobileAppDownloadModal = React.lazy(() => import('./MobileAppDownloadModal').then(m => ({ default: m.MobileAppDownloadModal })));
 
 interface PWAInstallButtonProps {
   className?: string;
@@ -120,10 +121,12 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
       )}
 
       {showGeneralModal && (
-        <MobileAppDownloadModal
-          isOpen={showGeneralModal}
-          onClose={() => setShowGeneralModal(false)}
-        />
+        <React.Suspense fallback={null}>
+          <MobileAppDownloadModal
+            isOpen={showGeneralModal}
+            onClose={() => setShowGeneralModal(false)}
+          />
+        </React.Suspense>
       )}
     </>
   );
