@@ -18,7 +18,7 @@ export function cleanVietnameseText(input: string | undefined | null): string {
   text = text
     .replace(/([\p{L}])\s*[\u0300\u0301\u0303\u0309\u0323\u02CA\u02CB\u00B4`]\s*([\p{L}])/gu, '$1$2')
     .replace(/([\p{L}])\s*[\u0300\u0301\u0303\u0309\u0323\u02CA\u02CB\u00B4`]/gu, '$1')
-    .replace(/[`´ˊˋ]/g, '') // remove isolated stray backticks or grave/acute accents in prose text
+    .replace(/[´ˊˋ]/g, '') // remove isolated stray grave/acute accents in prose text while keeping markdown backticks
     .replace(/\s{2,}/g, ' '); // collapse accidental double spaces
 
   // Re-run NFC normalization to be 100% sure all characters are precomposed

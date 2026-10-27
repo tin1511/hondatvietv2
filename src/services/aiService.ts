@@ -17,8 +17,52 @@ import { speechService, SpeechRecognitionOptions } from './speechService';
 import { LandmarkPhotoItem, VIETNAM_LANDMARK_PHOTOS } from '../data/landmarkImagesDatabase';
 import { HERITAGE_DATABASE } from '../data/vietnamHeritageData';
 import { generateOfflineTourGuideReply } from './offlineGuideService';
+import { classifyUserIntent, UserIntent } from './aiIntentClassifier';
 
-export const AI_MODEL = 'gemini-flash-latest';
+export const AI_MODEL = 'gemini-3.8-flash';
+
+// In-Memory Client-Side High-Speed LRU + TTL Cache
+interface ClientAICacheEntry {
+  timestamp: number;
+  data: string;
+}
+
+class ClientLRUTTLCache {
+  private cache = new Map<string, ClientAICacheEntry>();
+  private maxEntries: number;
+  private ttlMs: number;
+
+  constructor(maxEntries = 100, ttlMs = 30 * 60 * 1000) {
+    this.maxEntries = maxEntries;
+    this.ttlMs = ttlMs;
+  }
+
+  get(key: string): string | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > this.ttlMs) {
+      this.cache.delete(key);
+      return null;
+    }
+    this.cache.delete(key);
+    this.cache.set(key, entry);
+    return entry.data;
+  }
+
+  set(key: string, data: string): void {
+    if (this.cache.size >= this.maxEntries) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey) this.cache.delete(oldestKey);
+    }
+    this.cache.set(key, { timestamp: Date.now(), data });
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+export const clientAICache = new ClientLRUTTLCache(120, 30 * 60 * 1000);
 
 export interface RecognizeHeritageResult {
   name: string;
@@ -279,6 +323,134 @@ export const aiService = {
   },
 
   /**
+   * Real-Time Streaming AI Tour Guide & Assistant
+   * Receives tokens on-the-fly via SSE from server, delivering instant responses
+   */
+  async streamChatWithAssistant(params: {
+    message: string;
+    conversationHistory?: { role: 'user' | 'model'; text: string }[];
+    currentHeritageContext?: any;
+    language?: string;
+    isTourGuideMode?: boolean;
+    signal?: AbortSignal;
+    onChunk: (chunk: string, accumulated: string) => void;
+    onMeta?: (meta: { intent?: string; model?: string; isFastReply?: boolean; isCached?: boolean }) => void;
+  }): Promise<string> {
+    // Offline detection
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const offlineReply = await (async () => {
+        if (params.language === 'en') {
+          return `⚡ **[OFFLINE MODE - NO INTERNET]**\nYour device is currently disconnected from the internet. Local heritage knowledge is saved in the offline manager. Please connect to the internet to chat live with the Gemini AI Tour Guide.`;
+        }
+        try {
+          const rawReply = await generateOfflineTourGuideReply(params.message, params.currentHeritageContext);
+          return `⚡ **[CHẾ ĐỘ NGOẠI TUYẾN - KHÔNG CÓ INTERNET]**\nThiết bị đang ngắt kết nối mạng. Em xin trích xuất dữ liệu di sản lưu sẵn trong máy:\n\n${cleanVietnameseText(rawReply)}`;
+        } catch {
+          return '⚡ **[CHẾ ĐỘ NGOẠI TUYẾN]** Hiện tại thiết bị không có kết nối Internet để kết nối tới Gemini Cloud. Quý vị vui lòng kết nối mạng để trò chuyện cùng AI Hướng Dẫn Viên nhé.';
+        }
+      })();
+      params.onChunk(offlineReply, offlineReply);
+      return offlineReply;
+    }
+
+    // 1. Client-Side LRU Cache Check (Instant 0ms display)
+    const cleanMsg = (params.message || '').trim().toLowerCase();
+    const cacheKey = `c_stream_${cleanMsg}_${params.language || 'vi'}_${params.isTourGuideMode ?? true}_${params.currentHeritageContext?.id || params.currentHeritageContext?.name || 'none'}`;
+    const cached = clientAICache.get(cacheKey);
+
+    if (cached) {
+      params.onMeta?.({ intent: 'CACHED', model: 'client-cache-hit', isCached: true });
+      params.onChunk(cached, cached);
+      return cached;
+    }
+
+    // 2. Fetch from SSE endpoint
+    const trimmedHistory = (params.conversationHistory || []).slice(-6);
+
+    try {
+      const res = await fetch('/api/ai/chat-stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: params.message,
+          conversationHistory: trimmedHistory,
+          currentHeritageContext: params.currentHeritageContext,
+          language: params.language || 'vi',
+          isTourGuideMode: params.isTourGuideMode ?? true
+        }),
+        signal: params.signal
+      });
+
+      if (!res.ok) {
+        // Fallback to standard non-streaming
+        const fallbackReply = await this.chatWithAssistant(params);
+        params.onChunk(fallbackReply, fallbackReply);
+        return fallbackReply;
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) {
+        const fallbackReply = await this.chatWithAssistant(params);
+        params.onChunk(fallbackReply, fallbackReply);
+        return fallbackReply;
+      }
+
+      const decoder = new TextDecoder('utf-8');
+      let accumulated = '';
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (!trimmedLine.startsWith('data: ')) continue;
+          const jsonStr = trimmedLine.substring(6).trim();
+          if (!jsonStr) continue;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            if (parsed.type === 'meta') {
+              params.onMeta?.(parsed);
+            } else if (parsed.type === 'chunk' && parsed.text) {
+              accumulated += parsed.text;
+              params.onChunk(parsed.text, accumulated);
+            } else if (parsed.type === 'done') {
+              if (parsed.fullText) {
+                accumulated = parsed.fullText;
+              }
+              params.onChunk('', cleanVietnameseText(accumulated));
+            } else if (parsed.type === 'error') {
+              throw new Error(parsed.error || 'Lỗi xử lý phản hồi từ AI');
+            }
+          } catch (e: any) {
+            if (e.message && e.message.includes('Lỗi xử lý phản hồi')) throw e;
+          }
+        }
+      }
+
+      const finalClean = cleanVietnameseText(accumulated);
+      if (finalClean.length > 20) {
+        clientAICache.set(cacheKey, finalClean);
+      }
+      return finalClean;
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        return cleanVietnameseText(params.message ? '' : '');
+      }
+      console.warn('Streaming error, trying non-streaming fallback:', err);
+      const fallbackReply = await this.chatWithAssistant(params);
+      params.onChunk(fallbackReply, fallbackReply);
+      return fallbackReply;
+    }
+  },
+
+  /**
    * AI Tour Guide & Cultural Chatbot (Powered directly by Gemini API)
    */
   async chatWithAssistant(params: {
@@ -300,6 +472,14 @@ export const aiService = {
       } catch {
         return '⚡ **[CHẾ ĐỘ NGOẠI TUYẾN]** Hiện tại thiết bị không có kết nối Internet để kết nối tới Gemini Cloud. Quý vị vui lòng kết nối mạng để trò chuyện cùng AI Hướng Dẫn Viên nhé.';
       }
+    }
+
+    // Client Cache Check
+    const cleanMsg = (params.message || '').trim().toLowerCase();
+    const cacheKey = `c_rest_${cleanMsg}_${params.language || 'vi'}_${params.isTourGuideMode ?? true}_${params.currentHeritageContext?.id || params.currentHeritageContext?.name || 'none'}`;
+    const cached = clientAICache.get(cacheKey);
+    if (cached) {
+      return cached;
     }
 
     try {
@@ -324,7 +504,11 @@ export const aiService = {
         throw new Error(data.error || 'Gemini API phản hồi không thành công');
       }
 
-      return cleanVietnameseText(data.reply);
+      const cleanReply = cleanVietnameseText(data.reply);
+      if (cleanReply.length > 20) {
+        clientAICache.set(cacheKey, cleanReply);
+      }
+      return cleanReply;
     } catch (err: any) {
       if (err.name === 'AbortError') {
         throw err;

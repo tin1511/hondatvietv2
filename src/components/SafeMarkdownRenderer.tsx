@@ -5,18 +5,72 @@ interface SafeMarkdownRendererProps {
   className?: string;
 }
 
+// Pre-compiled static regular expressions - zero allocation per render
+const INLINE_REGEX = /(\*\*.*?\*\*|\*[^*]+?\*|`[^`]+?`)/g;
+const NUMBER_REGEX = /^(\d+)\.\s+(.*)$/;
+
 /**
- * Safe, zero-dependency Markdown renderer for AI Chat responses.
- * Parses headings, bullet points, numbered lists, bold, italics, blockquotes,
- * and horizontal rules without using dangerouslySetInnerHTML.
+ * Fast helper to parse inline styles: bold (**text**), italic (*text*), code (`code`).
+ * Has an O(1) early exit when no inline styling markers exist.
  */
-export const SafeMarkdownRenderer: React.FC<SafeMarkdownRendererProps> = ({
+function parseInline(text: string): React.ReactNode[] {
+  // Fast path: 80%+ of text lines have no markdown asterisks or backticks
+  if (!text.includes('*') && !text.includes('`')) {
+    return [text];
+  }
+
+  const parts: React.ReactNode[] = [];
+  INLINE_REGEX.lastIndex = 0;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = INLINE_REGEX.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.substring(lastIndex, match.index));
+    }
+
+    const matchText = match[0];
+    if (matchText.startsWith('**') && matchText.endsWith('**')) {
+      parts.push(
+        <strong key={`b-${match.index}`} className="font-bold text-amber-200">
+          {matchText.slice(2, -2)}
+        </strong>
+      );
+    } else if (matchText.startsWith('*') && matchText.endsWith('*')) {
+      parts.push(
+        <em key={`i-${match.index}`} className="italic text-stone-300">
+          {matchText.slice(1, -1)}
+        </em>
+      );
+    } else if (matchText.startsWith('`') && matchText.endsWith('`')) {
+      parts.push(
+        <code key={`c-${match.index}`} className="bg-stone-900 px-1 py-0.5 rounded text-amber-300 text-[11px] font-mono">
+          {matchText.slice(1, -1)}
+        </code>
+      );
+    }
+
+    lastIndex = INLINE_REGEX.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.substring(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : [text];
+}
+
+/**
+ * High-performance, zero-dependency Markdown renderer for AI Chat streaming responses.
+ * Parses headings, bullet points, numbered lists, bold, italics, blockquotes,
+ * and horizontal rules without dangerouslySetInnerHTML or layout-thrashing DOM operations.
+ */
+export const SafeMarkdownRenderer: React.FC<SafeMarkdownRendererProps> = React.memo(({
   content,
   className = ''
 }) => {
   if (!content) return null;
 
-  // Split content into lines for block-level parsing
   const lines = content.split('\n');
   const elements: React.ReactNode[] = [];
   let currentListItems: React.ReactNode[] = [];
@@ -43,52 +97,17 @@ export const SafeMarkdownRenderer: React.FC<SafeMarkdownRendererProps> = ({
     }
   };
 
-  // Helper to parse inline styles: bold (**text**), italic (*text*), code (`code`)
-  const parseInline = (text: string): React.ReactNode[] => {
-    // Regex for bold (**text**), italic (*text* or _text_), inline code (`code`)
-    const parts: React.ReactNode[] = [];
-    const regex = /(\*\*.*?\*\*|\*[^*]+?\*|`[^`]+?`)/g;
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
-
-    while ((match = regex.exec(text)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push(text.substring(lastIndex, match.index));
-      }
-
-      const matchText = match[0];
-      if (matchText.startsWith('**') && matchText.endsWith('**')) {
-        parts.push(
-          <strong key={`b-${match.index}`} className="font-bold text-amber-200">
-            {matchText.slice(2, -2)}
-          </strong>
-        );
-      } else if (matchText.startsWith('*') && matchText.endsWith('*')) {
-        parts.push(
-          <em key={`i-${match.index}`} className="italic text-stone-300">
-            {matchText.slice(1, -1)}
-          </em>
-        );
-      } else if (matchText.startsWith('`') && matchText.endsWith('`')) {
-        parts.push(
-          <code key={`c-${match.index}`} className="bg-stone-900 px-1 py-0.5 rounded text-amber-300 text-[11px] font-mono">
-            {matchText.slice(1, -1)}
-          </code>
-        );
-      }
-
-      lastIndex = regex.lastIndex;
-    }
-
-    if (lastIndex < text.length) {
-      parts.push(text.substring(lastIndex));
-    }
-
-    return parts.length > 0 ? parts : [text];
-  };
-
-  lines.forEach((line, index) => {
+  const len = lines.length;
+  for (let index = 0; index < len; index++) {
+    const line = lines[index];
     const trimmed = line.trim();
+
+    // Empty line
+    if (!trimmed) {
+      flushList();
+      elements.push(<div key={`empty-${index}`} className="h-2" />);
+      continue;
+    }
 
     // Horizontal Rule
     if (trimmed === '---' || trimmed === '***' || trimmed === '___') {
@@ -96,7 +115,7 @@ export const SafeMarkdownRenderer: React.FC<SafeMarkdownRendererProps> = ({
       elements.push(
         <hr key={`hr-${index}`} className="my-3 border-stone-700/60" />
       );
-      return;
+      continue;
     }
 
     // Headings
@@ -107,7 +126,7 @@ export const SafeMarkdownRenderer: React.FC<SafeMarkdownRendererProps> = ({
           {parseInline(trimmed.substring(4))}
         </h3>
       );
-      return;
+      continue;
     }
     if (trimmed.startsWith('## ')) {
       flushList();
@@ -116,7 +135,7 @@ export const SafeMarkdownRenderer: React.FC<SafeMarkdownRendererProps> = ({
           {parseInline(trimmed.substring(3))}
         </h2>
       );
-      return;
+      continue;
     }
     if (trimmed.startsWith('# ')) {
       flushList();
@@ -125,7 +144,7 @@ export const SafeMarkdownRenderer: React.FC<SafeMarkdownRendererProps> = ({
           {parseInline(trimmed.substring(2))}
         </h1>
       );
-      return;
+      continue;
     }
 
     // Blockquote
@@ -136,40 +155,35 @@ export const SafeMarkdownRenderer: React.FC<SafeMarkdownRendererProps> = ({
           {parseInline(trimmed.substring(2))}
         </blockquote>
       );
-      return;
+      continue;
     }
 
     // Unordered List (* or -)
-    const bulletMatch = trimmed.match(/^[\*\-]\s+(.*)$/);
-    if (bulletMatch) {
+    if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
       if (isNumberedList) flushList();
       isNumberedList = false;
       currentListItems.push(
         <li key={`li-${index}`} className="leading-relaxed">
-          {parseInline(bulletMatch[1])}
+          {parseInline(trimmed.substring(2))}
         </li>
       );
-      return;
+      continue;
     }
 
     // Numbered List (1. 2. etc.)
-    const numberMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
-    if (numberMatch) {
-      if (!isNumberedList && currentListItems.length > 0) flushList();
-      isNumberedList = true;
-      currentListItems.push(
-        <li key={`li-${index}`} className="leading-relaxed">
-          {parseInline(numberMatch[2])}
-        </li>
-      );
-      return;
-    }
-
-    // Empty line
-    if (!trimmed) {
-      flushList();
-      elements.push(<div key={`empty-${index}`} className="h-2" />);
-      return;
+    const firstChar = trimmed[0];
+    if (firstChar >= '0' && firstChar <= '9') {
+      const numberMatch = trimmed.match(NUMBER_REGEX);
+      if (numberMatch) {
+        if (!isNumberedList && currentListItems.length > 0) flushList();
+        isNumberedList = true;
+        currentListItems.push(
+          <li key={`li-${index}`} className="leading-relaxed">
+            {parseInline(numberMatch[2])}
+          </li>
+        );
+        continue;
+      }
     }
 
     // Regular paragraph
@@ -179,7 +193,7 @@ export const SafeMarkdownRenderer: React.FC<SafeMarkdownRendererProps> = ({
         {parseInline(line)}
       </p>
     );
-  });
+  }
 
   flushList();
 
@@ -188,4 +202,4 @@ export const SafeMarkdownRenderer: React.FC<SafeMarkdownRendererProps> = ({
       {elements}
     </div>
   );
-};
+});

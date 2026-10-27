@@ -10,6 +10,7 @@ export default defineConfig(() => {
       react(),
       tailwindcss(),
       VitePWA({
+        injectRegister: null,
         registerType: 'autoUpdate',
         includeAssets: ['apple-touch-icon.png', 'icon.svg', 'pwa-192x192.png', 'pwa-512x512.png', 'Messenger_creation_FDC0246A-CE89-435B-A246-2CBA64ADF7D0.png'],
         manifest: {

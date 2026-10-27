@@ -360,6 +360,8 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   isTourGuideMode?: boolean;
+  isStreaming?: boolean;
+  intent?: string;
 }
 
 export interface AITourGuideConfig {
